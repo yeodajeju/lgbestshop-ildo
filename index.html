@@ -1054,6 +1054,7 @@ function renderCal(){
     if(isT) c+=' today';
     else {
       if(inPeriod) c+=' tinted';
+      if(hasSpot) c+=' spot';
       if(isSel) c+=' selected';
       if(dow===0) c+=' sun';
       if(dow===6) c+=' sat';
@@ -1149,7 +1150,7 @@ async function loadSheet(manual=false){
         const start=new Date(cols[0]), end=new Date(cols[1]);
         const title=cols[2]||'', desc=cols[3]||'';
         const type=(cols[4]||'').trim(); // E열: '기간' 또는 '일회성'
-        const isPeriod = type==='기간';
+        const isPeriod = type!=='일회성'; // E열 없으면 기본값 기간
         for(let d=new Date(start); d<=end; d.setDate(d.getDate()+1)){
           const key=d.toISOString().slice(0,10);
           calEvs[key]={title, desc, isRange:true, rangeStart:cols[0], rangeEnd:cols[1], isPeriod};
@@ -1392,6 +1393,8 @@ async function loadNewsSheet(manual=false){
     renderNews();
   } catch(e){
     console.log('소식 로드 실패:', e.message);
+    // 실패해도 localStorage 데이터라도 표시
+    if(newsData.length) renderNews();
   }
 }
 
@@ -1900,7 +1903,11 @@ renderCal();
 loadSheet();
 loadMediaSheet();
 loadPopupSheet();
-loadNewsSheet();
+// 소식: 최대 3회 재시도 (1초, 3초, 6초)
+loadNewsSheet().catch(()=>{});
+setTimeout(()=>{ if(!newsData.length) loadNewsSheet().catch(()=>{}); }, 1000);
+setTimeout(()=>{ if(!newsData.length) loadNewsSheet().catch(()=>{}); }, 3000);
+setTimeout(()=>{ if(!newsData.length) loadNewsSheet().catch(()=>{}); }, 6000);
 </script>
 </body>
 </html>
