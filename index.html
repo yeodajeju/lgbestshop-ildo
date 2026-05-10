@@ -103,6 +103,18 @@ section{padding:72px 8%}
 .cc.empty{opacity:0}.cc.sun{color:rgba(255,100,100,.7)}.cc.sat{color:rgba(100,150,255,.7)}
 .cc.ev{background:rgba(200,16,46,.18);border:1px solid rgba(200,16,46,.35);cursor:pointer;color:#fff;font-weight:600}
 .cc.ev:hover{background:rgba(200,16,46,.32)}.cc.today{background:var(--red);color:#fff;font-weight:700}
+.cc.tinted{background:rgba(200,16,46,.055)}.cc.tinted:hover{background:rgba(200,16,46,.13)}
+.cc.spot{cursor:pointer}.cc.selected:not(.today){background:rgba(255,255,255,.18);color:#fff;font-weight:700}
+.cal-banner{background:rgba(200,16,46,.12);border:1px solid rgba(200,16,46,.3);border-radius:12px;padding:10px 14px;cursor:pointer;transition:background .2s}
+.cal-banner:hover{background:rgba(200,16,46,.22)}
+.cal-banner-row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.cal-banner-title{font-size:13px;font-weight:700;color:#fff}
+.cal-banner-date{font-size:10px;color:rgba(255,100,100,.6);margin-top:2px}
+.cal-banner-arr{font-size:11px;color:rgba(255,255,255,.3);flex-shrink:0;transition:transform .2s}
+.cal-banner-arr.open{transform:rotate(180deg)}
+.cal-banner-body{overflow:hidden;max-height:0;transition:max-height .25s ease}
+.cal-banner-body.open{max-height:300px}
+.cal-banner-desc{font-size:12px;color:rgba(255,255,255,.5);line-height:1.7;padding-top:8px;border-top:1px solid rgba(255,255,255,.07);margin-top:8px;white-space:pre-line}
 .ev-dot{width:4px;height:4px;background:var(--gold);border-radius:50%;margin-top:2px}
 .evlist{margin-top:24px;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
 .ei{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:var(--r);padding:18px;display:flex;gap:14px;align-items:flex-start;transition:all .2s}
@@ -552,6 +564,7 @@ function gtag_report_conversion(url) {
     <div class="events-col-cal">
       <div class="slabel fi" style="color:#ff8097">This Month</div>
       <h2 class="stitle fi">이달의 <span>행사·이벤트</span></h2>
+      <div id="cal-banners" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px"></div>
       <div class="cwrap fi">
         <div class="chead"><div class="cmon" id="cal-label"></div><div class="cnav"><button onclick="chM(-1)">&#8249;</button><button onclick="chM(1)">&#8250;</button></div></div>
         <div class="cbody">
@@ -971,52 +984,135 @@ let tpData=[
 ];
 
 // ── 캘린더
+let selectedDay = null;
+const openCalBanners = {};
+
+function toggleCalBanner(i){
+  openCalBanners[i]=!openCalBanners[i];
+  const body=document.getElementById('cal-bb-'+i);
+  const arr=document.getElementById('cal-ba-'+i);
+  if(body) body.classList.toggle('open',openCalBanners[i]);
+  if(arr) arr.classList.toggle('open',openCalBanners[i]);
+}
+
 function renderCal(){
   const lbl=document.getElementById('cal-label'),cells=document.getElementById('cal-cells'),evl=document.getElementById('ev-list');
   lbl.textContent=curY+'년 '+(curM+1)+'월';
   const fd=new Date(curY,curM,1).getDay(),dim=new Date(curY,curM+1,0).getDate(),td=new Date();
+  td.setHours(0,0,0,0);
+
+  // 이달 이벤트 수집
+  const periodEvs = {}; // 기간 행사 (중복제거용, rangeStart 기준)
+  const spotDays = {}; // 일회성 이벤트 날짜별
+  for(let d=1;d<=dim;d++){
+    const k=curY+'-'+String(curM+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    const ev=calEvs[k];
+    if(!ev) continue;
+    if(ev.isPeriod){
+      const key=ev.rangeStart||k;
+      if(!periodEvs[key]) periodEvs[key]={title:ev.title,desc:ev.desc,rangeStart:ev.rangeStart,rangeEnd:ev.rangeEnd};
+    } else {
+      if(!spotDays[d]) spotDays[d]=[];
+      const already=spotDays[d].find(e=>e.title===ev.title);
+      if(!already) spotDays[d].push({title:ev.title,desc:ev.desc,rangeStart:ev.rangeStart||k,rangeEnd:ev.rangeEnd||k});
+    }
+  }
+
+  // 띠배너 렌더
+  const bannerEl=document.getElementById('cal-banners');
+  if(bannerEl){
+    const pvs=Object.values(periodEvs);
+    bannerEl.innerHTML=pvs.map((e,i)=>{
+      const s=e.rangeStart?e.rangeStart.split('-'):[], en=e.rangeEnd?e.rangeEnd.split('-'):[];
+      const dateStr=s.length?parseInt(s[1])+'월 '+parseInt(s[2])+'일 ~ '+parseInt(en[1])+'월 '+parseInt(en[2])+'일':'';
+      return `<div class="cal-banner" onclick="toggleCalBanner(${i})">
+        <div class="cal-banner-row">
+          <div>
+            <div class="cal-banner-title">🎉 ${e.title}</div>
+            ${dateStr?`<div class="cal-banner-date">${dateStr}</div>`:''}
+          </div>
+          <div class="cal-banner-arr" id="cal-ba-${i}">▼</div>
+        </div>
+        <div class="cal-banner-body" id="cal-bb-${i}">
+          ${e.desc?`<div class="cal-banner-desc">${e.desc}</div>`:''}
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // 달력 셀 렌더
   cells.innerHTML='';
-  for(let i=0;i<fd;i++)cells.innerHTML+='<div class="cc empty"></div>';
+  for(let i=0;i<fd;i++) cells.innerHTML+='<div class="cc empty"></div>';
   for(let d=1;d<=dim;d++){
     const k=curY+'-'+String(curM+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
     const isT=td.getFullYear()===curY&&td.getMonth()===curM&&td.getDate()===d;
-    const hasE=calEvs[k],dow=(fd+d-1)%7;
-    let c='cc';if(isT)c+=' today';else if(hasE)c+=' ev';if(!isT&&dow===0)c+=' sun';if(!isT&&dow===6)c+=' sat';
-    cells.innerHTML+='<div class="'+c+'">'+d+(hasE&&!isT?'<div class="ev-dot"></div>':'')+'</div>';
+    const dow=(fd+d-1)%7;
+    const inPeriod=calEvs[k]&&calEvs[k].isPeriod;
+    const hasSpot=!!spotDays[d];
+    const isSel=selectedDay===d;
+    let c='cc';
+    if(isT) c+=' today';
+    else {
+      if(inPeriod) c+=' tinted';
+      if(isSel) c+=' selected';
+      if(dow===0) c+=' sun';
+      if(dow===6) c+=' sat';
+    }
+    const dot=hasSpot?'<div class="ev-dot"></div>':'';
+    cells.innerHTML+=`<div class="${c}" onclick="selectCalDay(${d})">${d}${dot}</div>`;
   }
-  const today = new Date(); today.setHours(0,0,0,0);
-  const mes=Object.entries(calEvs).filter(([k])=>{const[y,m]=k.split('-').map(Number);return y===curY&&m===curM+1;});
-  // 기간 이벤트는 대표 날짜(시작일)로 중복 제거해서 표시
-  const uniqueEvs = {};
-  mes.forEach(([k,ev])=>{
-    // 종료일 기준으로 지난 이벤트 제외
-    const endKey = ev.isRange ? (ev.rangeEnd||k) : k;
-    const endDate = new Date(endKey); endDate.setHours(0,0,0,0);
-    if(endDate < today) return;
-    const key = ev.isRange ? (ev.rangeStart||k) : k;
-    if(!uniqueEvs[key]) uniqueEvs[key] = {k, ev};
-  });
 
-  evl.innerHTML=Object.keys(uniqueEvs).length===0?'<p style="color:rgba(255,255,255,.3);font-size:14px;margin-top:12px">이번 달 등록된 이벤트가 없습니다.</p>'
-    :Object.values(uniqueEvs).map(({k,ev})=>{
-      const[,m,d]=k.split('-');
-      let dateLabel = '';
-      if(ev.isRange && ev.rangeStart && ev.rangeEnd){
-        const s=ev.rangeStart.split('-'), e=ev.rangeEnd.split('-');
-        dateLabel = s[1]+'월 '+parseInt(s[2])+'일 ~ '+e[1]+'월 '+parseInt(e[2])+'일';
-      } else {
-        dateLabel = m+'월 '+parseInt(d)+'일';
-      }
-      const dayNum = parseInt(d);
-let dayDisplay = dayNum;
-if(ev.isRange && ev.rangeStart && ev.rangeEnd && ev.rangeStart !== ev.rangeEnd){
-  const sd=ev.rangeStart.split('-'), ed=ev.rangeEnd.split('-');
-  if(sd[1]===ed[1] && sd[2]!==ed[2]) dayDisplay=parseInt(sd[2])+'~'+parseInt(ed[2]);
-  else if(sd[1]!==ed[1]) dayDisplay=sd[1]+'/'+parseInt(sd[2])+'~'+ed[1]+'/'+parseInt(ed[2]);
+  // 하단 이벤트 목록 (지난 것 제외, 날짜 선택 없으면 전체)
+  renderEvList(spotDays, td, dim);
 }
-const fontSize = String(dayDisplay).length>4?'12':'20';
-return '<div class="ei"><div class="eidate"><div class="eidm">'+m+'월</div><div class="eidd" style="font-size:'+fontSize+'px;line-height:1.2">'+dayDisplay+'</div></div><div><div class="eit">'+ev.title+'</div><div class="eid">'+(ev.desc||'')+'</div><div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:4px">📅 '+dateLabel+'</div></div></div>';
-    }).join('');
+
+function selectCalDay(d){
+  selectedDay = selectedDay===d ? null : d;
+  renderCal();
+}
+
+function renderEvList(spotDays, today, dim){
+  const evl=document.getElementById('ev-list');
+  // 선택된 날짜가 있으면 그날만
+  if(selectedDay){
+    const spots=spotDays[selectedDay]||[];
+    if(!spots.length){
+      evl.innerHTML='<p style="color:rgba(255,255,255,.3);font-size:14px;margin-top:12px">이 날은 별도 이벤트가 없습니다.</p>';
+      return;
+    }
+    evl.innerHTML=`<p style="font-size:11px;color:rgba(255,255,255,.35);margin-top:12px;margin-bottom:8px">${selectedDay}일 특별 이벤트</p>`+
+      spots.map(ev=>{
+        const s=ev.rangeStart.split('-'), e=ev.rangeEnd.split('-');
+        const sameDay=ev.rangeStart===ev.rangeEnd;
+        const dateLabel=sameDay?parseInt(s[1])+'월 '+parseInt(s[2])+'일':parseInt(s[1])+'월 '+parseInt(s[2])+'일 ~ '+parseInt(e[1])+'월 '+parseInt(e[2])+'일';
+        const dd=sameDay?selectedDay:parseInt(s[2])+'~'+parseInt(e[2]);
+        return `<div class="ei" style="border-color:rgba(201,168,76,.4);background:rgba(201,168,76,.06)">
+          <div class="eidate" style="background:#C9A84C"><div class="eidm" style="color:rgba(0,0,0,.5)">${parseInt(s[1])}월</div><div class="eidd" style="color:#111;font-size:${String(dd).length>4?'12':'20'}px">${dd}</div></div>
+          <div><div class="eit">${ev.title}</div><div class="eid">${ev.desc||''}</div><div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:4px">📅 ${dateLabel}</div></div>
+        </div>`;
+      }).join('');
+    return;
+  }
+  // 선택 없으면 이달 일회성 이벤트 중 오늘 이후만
+  const futureSpots=[];
+  Object.entries(spotDays).forEach(([d,evs])=>{
+    const dateObj=new Date(curY,curM,parseInt(d)); dateObj.setHours(0,0,0,0);
+    if(dateObj>=today) evs.forEach(ev=>futureSpots.push({d:parseInt(d),ev}));
+  });
+  if(!futureSpots.length){
+    evl.innerHTML='<p style="color:rgba(255,255,255,.3);font-size:14px;margin-top:12px">이번 달 특별 이벤트가 없습니다.</p>';
+    return;
+  }
+  evl.innerHTML=futureSpots.sort((a,b)=>a.d-b.d).map(({d,ev})=>{
+    const s=ev.rangeStart.split('-'), e=ev.rangeEnd.split('-');
+    const sameDay=ev.rangeStart===ev.rangeEnd;
+    const dateLabel=sameDay?parseInt(s[1])+'월 '+parseInt(s[2])+'일':parseInt(s[1])+'월 '+parseInt(s[2])+'일 ~ '+parseInt(e[1])+'월 '+parseInt(e[2])+'일';
+    const dd=sameDay?d:parseInt(s[2])+'~'+parseInt(e[2]);
+    return `<div class="ei" style="border-color:rgba(201,168,76,.4);background:rgba(201,168,76,.06)">
+      <div class="eidate" style="background:#C9A84C"><div class="eidm" style="color:rgba(0,0,0,.5)">${parseInt(s[1])}월</div><div class="eidd" style="color:#111;font-size:${String(dd).length>4?'12':'20'}px">${dd}</div></div>
+      <div><div class="eit">${ev.title}</div><div class="eid">${ev.desc||''}</div><div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:4px">📅 ${dateLabel}</div></div>
+    </div>`;
+  }).join('');
 }
 function chM(d){curM+=d;if(curM>11){curM=0;curY++;}if(curM<0){curM=11;curY--;}renderCal();}
 
@@ -1048,18 +1144,20 @@ async function loadSheet(manual=false){
       cols.push(cur.trim());
       if(!cols[0]) return;
 
-      // 기간 형식: 시작일, 종료일, 제목, 내용
+      // 기간 형식: 시작일, 종료일, 제목, 내용, 유형(기간/일회성)
       if(cols[0]&&cols[1]&&/^\d{4}-\d{2}-\d{2}$/.test(cols[0])&&/^\d{4}-\d{2}-\d{2}$/.test(cols[1])){
         const start=new Date(cols[0]), end=new Date(cols[1]);
         const title=cols[2]||'', desc=cols[3]||'';
+        const type=(cols[4]||'').trim(); // E열: '기간' 또는 '일회성'
+        const isPeriod = type==='기간';
         for(let d=new Date(start); d<=end; d.setDate(d.getDate()+1)){
           const key=d.toISOString().slice(0,10);
-          calEvs[key]={title, desc, isRange:true, rangeStart:cols[0], rangeEnd:cols[1]};
+          calEvs[key]={title, desc, isRange:true, rangeStart:cols[0], rangeEnd:cols[1], isPeriod};
         }
       }
       // 단일 날짜 형식 (하위 호환): 날짜, 제목, 내용
       else if(/^\d{4}-\d{2}-\d{2}$/.test(cols[0])&&cols[1]){
-        calEvs[cols[0]]={title:cols[1], desc:cols[2]||''};
+        calEvs[cols[0]]={title:cols[1], desc:cols[2]||'', isPeriod:false};
       }
     });
 
@@ -1441,8 +1539,6 @@ function saveNews(){
   alert('✅ 소식이 저장됐습니다!');
 }
 
-renderNews();
-
 // ── About 관리
 let aboutFeats = [
   {icon:'🎯', title:'나에게 딱 맞는 제품', desc:'과하지도 부족하지도 않게, 예산과 생활에 맞는 제품만 골라드립니다'},
@@ -1804,6 +1900,7 @@ renderCal();
 loadSheet();
 loadMediaSheet();
 loadPopupSheet();
+loadNewsSheet();
 </script>
 </body>
 </html>
