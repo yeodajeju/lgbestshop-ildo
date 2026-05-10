@@ -572,8 +572,17 @@ function gtag_report_conversion(url) {
           <div class="ccells" id="cal-cells"></div>
         </div>
       </div>
-      <div class="evlist" id="ev-list"></div>
-      <div style="margin-top:20px;text-align:right">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px">
+        <div>
+          <div style="font-size:11px;font-weight:700;letter-spacing:1px;color:rgba(255,255,255,.35);margin-bottom:10px">이달의 행사</div>
+          <div id="ev-period"></div>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;letter-spacing:1px;color:rgba(255,255,255,.35);margin-bottom:10px" id="ev-spot-label" style="display:none">이날의 행사</div>
+          <div id="ev-spot"></div>
+        </div>
+      </div>
+      <div style="margin-top:12px;text-align:right">
         <div id="sheet-status" class="sheet-status" style="display:inline-block"></div>
       </div>
     </div>
@@ -1047,14 +1056,13 @@ function renderCal(){
     const k=curY+'-'+String(curM+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
     const isT=td.getFullYear()===curY&&td.getMonth()===curM&&td.getDate()===d;
     const dow=(fd+d-1)%7;
-    const inPeriod=calEvs[k]&&calEvs[k].isPeriod;
+    const hasAnyEv=!!calEvs[k]; // 기간이든 일회성이든 이벤트 있으면 tinted
     const hasSpot=!!spotDays[d];
     const isSel=selectedDay===d;
     let c='cc';
     if(isT) c+=' today';
     else {
-      if(inPeriod) c+=' tinted';
-      if(hasSpot) c+=' spot';
+      if(hasAnyEv) c+=' tinted';
       if(isSel) c+=' selected';
       if(dow===0) c+=' sun';
       if(dow===6) c+=' sat';
@@ -1063,8 +1071,9 @@ function renderCal(){
     cells.innerHTML+=`<div class="${c}" onclick="selectCalDay(${d})">${d}${dot}</div>`;
   }
 
-  // 하단 이벤트 목록 (지난 것 제외, 날짜 선택 없으면 전체)
-  renderEvList(spotDays, td, dim);
+  // 하단 렌더
+  renderPeriodList(periodEvs);
+  renderSpotList(spotDays, td);
 }
 
 function selectCalDay(d){
@@ -1072,46 +1081,48 @@ function selectCalDay(d){
   renderCal();
 }
 
-function renderEvList(spotDays, today, dim){
-  const evl=document.getElementById('ev-list');
-  // 선택된 날짜가 있으면 그날만
-  if(selectedDay){
-    const spots=spotDays[selectedDay]||[];
-    if(!spots.length){
-      evl.innerHTML='<p style="color:rgba(255,255,255,.3);font-size:14px;margin-top:12px">이 날은 별도 이벤트가 없습니다.</p>';
-      return;
-    }
-    evl.innerHTML=`<p style="font-size:11px;color:rgba(255,255,255,.35);margin-top:12px;margin-bottom:8px">${selectedDay}일 특별 이벤트</p>`+
-      spots.map(ev=>{
-        const s=ev.rangeStart.split('-'), e=ev.rangeEnd.split('-');
-        const sameDay=ev.rangeStart===ev.rangeEnd;
-        const dateLabel=sameDay?parseInt(s[1])+'월 '+parseInt(s[2])+'일':parseInt(s[1])+'월 '+parseInt(s[2])+'일 ~ '+parseInt(e[1])+'월 '+parseInt(e[2])+'일';
-        const dd=sameDay?selectedDay:parseInt(s[2])+'~'+parseInt(e[2]);
-        return `<div class="ei" style="border-color:rgba(201,168,76,.4);background:rgba(201,168,76,.06)">
-          <div class="eidate" style="background:#C9A84C"><div class="eidm" style="color:rgba(0,0,0,.5)">${parseInt(s[1])}월</div><div class="eidd" style="color:#111;font-size:${String(dd).length>4?'12':'20'}px">${dd}</div></div>
-          <div><div class="eit">${ev.title}</div><div class="eid">${ev.desc||''}</div><div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:4px">📅 ${dateLabel}</div></div>
-        </div>`;
-      }).join('');
+function renderPeriodList(periodEvs){
+  const el=document.getElementById('ev-period');
+  if(!el) return;
+  const pvs=Object.values(periodEvs);
+  if(!pvs.length){
+    el.innerHTML='<p style="color:rgba(255,255,255,.25);font-size:12px">등록된 상시행사가 없습니다.</p>';
     return;
   }
-  // 선택 없으면 이달 일회성 이벤트 중 오늘 이후만
-  const futureSpots=[];
-  Object.entries(spotDays).forEach(([d,evs])=>{
-    const dateObj=new Date(curY,curM,parseInt(d)); dateObj.setHours(0,0,0,0);
-    if(dateObj>=today) evs.forEach(ev=>futureSpots.push({d:parseInt(d),ev}));
-  });
-  if(!futureSpots.length){
-    evl.innerHTML='<p style="color:rgba(255,255,255,.3);font-size:14px;margin-top:12px">이번 달 특별 이벤트가 없습니다.</p>';
+  el.innerHTML=pvs.map(e=>{
+    const s=e.rangeStart?e.rangeStart.split('-'):[];
+    const en=e.rangeEnd?e.rangeEnd.split('-'):[];
+    const dateStr=s.length?parseInt(s[1])+'월 '+parseInt(s[2])+'일 ~ '+parseInt(en[1])+'월 '+parseInt(en[2])+'일':'';
+    return `<div class="ei" style="margin-bottom:8px">
+      <div class="eidate"><div class="eidm">${s.length?parseInt(s[1])+'월':''}</div><div class="eidd" style="font-size:12px;line-height:1.3">${s.length?parseInt(s[2])+'~'+parseInt(en[2]):''}</div></div>
+      <div><div class="eit">${e.title}</div>${e.desc?`<div class="eid">${e.desc}</div>`:''}${dateStr?`<div style="font-size:10px;color:rgba(255,255,255,.3);margin-top:3px">📅 ${dateStr}</div>`:''}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderSpotList(spotDays, today){
+  const el=document.getElementById('ev-spot');
+  const lbl=document.getElementById('ev-spot-label');
+  if(!el) return;
+  if(!selectedDay){
+    el.innerHTML='';
+    if(lbl) lbl.style.display='none';
     return;
   }
-  evl.innerHTML=futureSpots.sort((a,b)=>a.d-b.d).map(({d,ev})=>{
+  if(lbl){ lbl.style.display='block'; lbl.textContent=`${selectedDay}일의 행사`; }
+  const spots=spotDays[selectedDay]||[];
+  if(!spots.length){
+    el.innerHTML='<p style="color:rgba(255,255,255,.25);font-size:12px">이 날은 별도 행사가 없습니다.</p>';
+    return;
+  }
+  el.innerHTML=spots.map(ev=>{
     const s=ev.rangeStart.split('-'), e=ev.rangeEnd.split('-');
     const sameDay=ev.rangeStart===ev.rangeEnd;
     const dateLabel=sameDay?parseInt(s[1])+'월 '+parseInt(s[2])+'일':parseInt(s[1])+'월 '+parseInt(s[2])+'일 ~ '+parseInt(e[1])+'월 '+parseInt(e[2])+'일';
-    const dd=sameDay?d:parseInt(s[2])+'~'+parseInt(e[2]);
-    return `<div class="ei" style="border-color:rgba(201,168,76,.4);background:rgba(201,168,76,.06)">
-      <div class="eidate" style="background:#C9A84C"><div class="eidm" style="color:rgba(0,0,0,.5)">${parseInt(s[1])}월</div><div class="eidd" style="color:#111;font-size:${String(dd).length>4?'12':'20'}px">${dd}</div></div>
-      <div><div class="eit">${ev.title}</div><div class="eid">${ev.desc||''}</div><div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:4px">📅 ${dateLabel}</div></div>
+    const dd=sameDay?selectedDay:parseInt(s[2])+'~'+parseInt(e[2]);
+    return `<div class="ei" style="border-color:rgba(201,168,76,.4);background:rgba(201,168,76,.06);margin-bottom:8px">
+      <div class="eidate" style="background:#C9A84C"><div class="eidm" style="color:rgba(0,0,0,.5)">${parseInt(s[1])}월</div><div class="eidd" style="color:#111;font-size:${String(dd).length>4?'12':'18'}px">${dd}</div></div>
+      <div><div class="eit">${ev.title}</div>${ev.desc?`<div class="eid">${ev.desc}</div>`:''}<div style="font-size:10px;color:rgba(255,255,255,.3);margin-top:3px">📅 ${dateLabel}</div></div>
     </div>`;
   }).join('');
 }
