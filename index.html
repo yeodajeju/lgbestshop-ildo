@@ -299,17 +299,23 @@ footer{background:var(--black);padding:44px 8%;color:rgba(255,255,255,.4)}
 .news-header h2{font-family:var(--serif);font-size:28px;font-weight:700;color:#fff}
 .news-close{background:rgba(255,255,255,.15);border:none;color:#fff;width:40px;height:40px;border-radius:50%;cursor:pointer;font-size:20px;display:flex;align-items:center;justify-content:center}
 .news-close:hover{background:rgba(255,255,255,.3)}
-.news-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:20px}
-.news-card{background:#fff;border-radius:var(--r);overflow:hidden;cursor:pointer;text-decoration:none;display:block;transition:transform .3s;color:inherit;width:100%}
-.news-card:hover{transform:translateY(-4px);box-shadow:var(--shh)}
-.news-card-img{width:100%;display:block;background:var(--g100);object-fit:contain;max-height:300px}
-.news-card-img-ph{width:100%;aspect-ratio:16/9;background:linear-gradient(135deg,var(--red-light),#fde8e8);display:flex;align-items:center;justify-content:center;font-size:32px}
-.news-card-body{padding:16px}
-.news-card-tag{font-size:11px;font-weight:700;color:var(--red);margin-bottom:6px}
-.news-card-title{font-size:15px;font-weight:700;color:var(--black);margin-bottom:6px;line-height:1.4}
-.news-card-date{font-size:12px;color:var(--g400)}
+.news-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.news-card{background:#fff;border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column}
+.news-card.first{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:0}
+.news-card.first .news-card-img-wrap{height:100%;min-height:220px}
+.news-card.first .news-card-body{padding:24px}
+.news-card.first .news-card-title{font-size:16px;margin-bottom:10px}
+.news-card-img-wrap-sm{width:100%;height:140px;background:var(--g100);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:28px}
+.news-card-body{padding:14px 16px;display:flex;flex-direction:column;flex:1}
+.news-card-tag{font-size:10px;font-weight:700;color:var(--red);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
+.news-card-title{font-size:14px;font-weight:700;color:var(--black);margin-bottom:6px;line-height:1.4}
+.news-card-date{font-size:11px;color:var(--g400);margin-bottom:10px}
+.news-card-desc{font-size:12px;color:var(--g700);line-height:1.6;margin-bottom:8px}
+.news-card-desc-hidden{display:none;font-size:12px;color:var(--g700);line-height:1.6;margin-bottom:8px}
+.news-card-desc-hidden.open{display:block}
+.news-card-more{background:none;border:none;color:var(--red);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--sans);padding:4px 0;text-align:left;margin-bottom:8px}
 .news-empty{color:rgba(255,255,255,.4);font-size:14px;text-align:center;padding:48px 0}
-@media(max-width:768px){.news-grid{grid-template-columns:1fr}}
+@media(max-width:768px){.news-grid{grid-template-columns:1fr}.news-card.first{grid-template-columns:1fr}}
 
 
 /* NEWS SLIDER */
@@ -1109,7 +1115,7 @@ function renderSpotList(spotDays, today){
     if(lbl) lbl.style.display='none';
     return;
   }
-  if(lbl){ lbl.style.display='block'; lbl.textContent=`${selectedDay}일의 행사`; }
+  if(lbl){ lbl.style.display='block'; lbl.textContent='이날의 행사'; }
   const spots=spotDays[selectedDay]||[];
   if(!spots.length){
     el.innerHTML='<p style="color:rgba(255,255,255,.25);font-size:12px">이 날은 별도 행사가 없습니다.</p>';
@@ -1461,22 +1467,51 @@ function nextSlide(e, cardIdx, total){
 function renderNews(){
   const grid = document.getElementById('news-grid');
   if(!newsData.length){ grid.innerHTML='<div class="news-empty">등록된 소식이 없습니다.</div>'; renderInlineNews(); return; }
-  grid.innerHTML = newsData.map((n,cardIdx)=>{
-    // F열 이미지 - 쉼표로 여러 개 구분
+  grid.innerHTML = newsData.map((n, cardIdx)=>{
     const photos = (n.photo||'').split('|').filter(Boolean);
-    const sliderHtml = makeSlider(photos, cardIdx);
-    return `<div class="news-card">
-      ${sliderHtml}
-      <div class="news-card-body">
-        <div class="news-card-tag">${n.tag||'소식'}</div>
-        <div class="news-card-title"><a href="${n.url||'#'}" target="${n.url?'_blank':'_self'}" style="color:inherit;text-decoration:none">${n.title}</a></div>
-        ${n.desc ? `<div style="font-size:13px;color:var(--g700);line-height:1.6;margin-top:6px;margin-bottom:4px">${n.desc.replace(/\n/g,'<br>')}</div>` : ''}
-        <div class="news-card-date">${n.date}</div>
-        <a href="https://m.place.naver.com/place/1607379211/home" target="_blank" onclick="gtag('event','reservation_click',{event_category:'conversion',event_label:'news_card_naver'}); gtag_report_conversion(); fbq('track','Lead');" style="display:block;margin-top:14px;background:#03C75A;color:#fff;text-align:center;padding:10px;border-radius:8px;font-size:13px;font-weight:700;text-decoration:none">🎁 혜택 받으러 가기</a>
-      </div>
-    </div>`;
+    const isFirst = cardIdx === 0;
+    const cta = `<a href="https://m.place.naver.com/place/1607379211/home" target="_blank" onclick="gtag('event','reservation_click',{event_category:'conversion',event_label:'news_card_naver'}); gtag_report_conversion(); fbq('track','Lead');" style="display:block;margin-top:auto;padding-top:12px;background:#03C75A;color:#fff;text-align:center;padding:10px;border-radius:8px;font-size:13px;font-weight:700;text-decoration:none">🎁 혜택 받으러 가기</a>`;
+
+    if(isFirst){
+      // 첫 번째: 좌우 반반, 슬라이더 + 전체 내용
+      const sliderHtml = makeSlider(photos, cardIdx);
+      return `<div class="news-card first">
+        <div class="news-card-img-wrap">${sliderHtml}</div>
+        <div class="news-card-body">
+          <div class="news-card-tag">${n.tag||'소식'}</div>
+          <div class="news-card-title">${n.title}</div>
+          ${n.desc?`<div class="news-card-desc">${n.desc.replace(/\n/g,'<br>')}</div>`:''}
+          <div class="news-card-date">${n.date}</div>
+          ${cta}
+        </div>
+      </div>`;
+    } else {
+      // 나머지: 이미지 + 제목/날짜 + 내용보기 접기
+      const firstImg = photos.length ? getImgUrl(photos[0]) : '';
+      const imgHtml = firstImg
+        ? `<div class="news-card-img-wrap-sm"><img src="${firstImg}" alt="소식" style="width:100%;height:100%;object-fit:cover"></div>`
+        : `<div class="news-card-img-wrap-sm">📰</div>`;
+      return `<div class="news-card">
+        ${imgHtml}
+        <div class="news-card-body">
+          <div class="news-card-tag">${n.tag||'소식'}</div>
+          <div class="news-card-title">${n.title}</div>
+          <div class="news-card-date">${n.date}</div>
+          ${n.desc?`<div class="news-card-desc-hidden" id="ndesc-${cardIdx}">${n.desc.replace(/\n/g,'<br>')}</div>
+          <button class="news-card-more" onclick="toggleNewsDesc(${cardIdx})">내용 보기 ↓</button>`:''}
+          ${cta}
+        </div>
+      </div>`;
+    }
   }).join('');
   renderInlineNews();
+}
+
+function toggleNewsDesc(i){
+  const desc = document.getElementById('ndesc-'+i);
+  const btn = desc.nextElementSibling;
+  desc.classList.toggle('open');
+  btn.textContent = desc.classList.contains('open') ? '접기 ↑' : '내용 보기 ↓';
 }
 
 function renderInlineNews(){
