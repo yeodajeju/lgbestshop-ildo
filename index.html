@@ -544,9 +544,8 @@ function gtag_report_conversion(url) {
       <div class="inline-news-grid" id="inline-news-grid">
         <div class="news-empty" style="color:rgba(255,255,255,.35);padding:32px 0;font-size:13px">소식을 불러오는 중...</div>
       </div>
-      <div style="margin-top:16px;display:flex;flex-wrap:wrap;gap:10px;align-items:center">
-        <button onclick="openNews()" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.7);padding:10px 22px;border-radius:100px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--sans);transition:all .2s" onmouseover="this.style.background='rgba(200,16,46,.25)';this.style.borderColor='rgba(200,16,46,.5)';this.style.color='#fff'" onmouseout="this.style.background='rgba(255,255,255,.08)';this.style.borderColor='rgba(255,255,255,.15)';this.style.color='rgba(255,255,255,.7)'">전체 소식 보기 →</button>
-        <a href="https://m.place.naver.com/place/1607379211/home" target="_blank" onclick="gtag('event','reservation_click',{event_category:'conversion',event_label:'events_news_naver'}); gtag_report_conversion(); fbq('track','Lead');" style="display:inline-flex;align-items:center;gap:7px;background:#03C75A;color:#fff;padding:10px 22px;border-radius:100px;font-size:13px;font-weight:700;text-decoration:none;transition:all .2s" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">🗺️ 네이버 예약하러 가기</a>
+      <div style="margin-top:16px">
+        <button onclick="openNews(); gtag('event','news_open',{event_category:'engagement',event_label:'events_section'}); fbq('track','ViewContent');" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.7);padding:10px 22px;border-radius:100px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--sans);transition:all .2s" onmouseover="this.style.background='rgba(200,16,46,.25)';this.style.borderColor='rgba(200,16,46,.5)';this.style.color='#fff'" onmouseout="this.style.background='rgba(255,255,255,.08)';this.style.borderColor='rgba(255,255,255,.15)';this.style.color='rgba(255,255,255,.7)'">전체 소식 보기 →</button>
       </div>
     </div>
     <!-- 오른쪽: 이벤트 달력 -->
@@ -1376,20 +1375,20 @@ function renderInlineNews(){
     return;
   }
   const items = newsData.slice(0, 6); // 최대 6개
-  grid.innerHTML = items.map(n => {
+  grid.innerHTML = items.map((n, idx) => {
     const photos = (n.photo||'').split('|').filter(Boolean);
     const firstImg = photos.length ? getImgUrl(photos[0]) : '';
     const thumbHtml = firstImg
       ? `<div class="inline-news-thumb"><img src="${firstImg}" alt="소식"></div>`
       : `<div class="inline-news-thumb">📰</div>`;
-    return `<a class="inline-news-card" href="${n.url||'#'}" target="${n.url?'_blank':'_self'}">
+    return `<div class="inline-news-card" onclick="openNews(); gtag('event','news_open',{event_category:'engagement',event_label:'inline_card'}); fbq('track','ViewContent');" style="cursor:pointer">
       ${thumbHtml}
       <div class="inline-news-body">
         <div class="inline-news-tag">${n.tag||'소식'}</div>
         <div class="inline-news-title">${n.title}</div>
         <div class="inline-news-date">${n.date}</div>
       </div>
-    </a>`;
+    </div>`;
   }).join('');
 }
 
