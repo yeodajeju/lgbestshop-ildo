@@ -790,21 +790,28 @@ function gtag_report_conversion(url) {
           <div class="sf-step-q">어떤 상황이세요?</div>
           <div class="sf-step-sub">딱 맞는 혜택과 매니저를 연결해드릴게요.</div>
           <div class="sf-cats">
-            <button class="sf-cat" onclick="selectCat(this,'일반 가전 구매 (교체 등)')">
-              <span class="sf-cat-ico">🔄</span>
+            <button class="sf-cat" onclick="selectCat(this,'새 제품 구입', 'step-1')">
+              <span class="sf-cat-ico">✨</span>
               <div>
-                <div class="sf-cat-name">기존 가전 교체</div>
-                <div class="sf-cat-desc">쓰던 제품 바꾸거나 추가 구매</div>
+                <div class="sf-cat-name">새 제품 구입</div>
+                <div class="sf-cat-desc">처음 구입하거나 추가 구매</div>
               </div>
             </button>
-            <button class="sf-cat" onclick="selectCat(this,'이사 가전 구매')">
+            <button class="sf-cat" onclick="selectCat(this,'교체 구입', 'step-1')">
+              <span class="sf-cat-ico">🔄</span>
+              <div>
+                <div class="sf-cat-name">교체 구입</div>
+                <div class="sf-cat-desc">쓰던 제품을 새 제품으로 교체</div>
+              </div>
+            </button>
+            <button class="sf-cat" onclick="selectCat(this,'이사 가전 구매', 'step-1')">
               <span class="sf-cat-ico">🏠</span>
               <div>
                 <div class="sf-cat-name">이사 가전 구매</div>
                 <div class="sf-cat-desc">이사 앞두고 한 번에 구매</div>
               </div>
             </button>
-            <button class="sf-cat" onclick="selectCat(this,'혼수 가전 구매')">
+            <button class="sf-cat" onclick="selectCat(this,'혼수 가전 구매', 'step-1')">
               <span class="sf-cat-ico">💍</span>
               <div>
                 <div class="sf-cat-name">혼수 가전 구매</div>
@@ -820,28 +827,28 @@ function gtag_report_conversion(url) {
           <div class="sf-step-q">담당 매니저를 골라주세요</div>
           <div class="sf-step-sub">모르겠으면 그냥 넘어가도 돼요.</div>
           <div class="sf-cats">
-            <button class="sf-cat" onclick="selectMgr(this,'문성환 지점장')">
+            <button class="sf-cat" onclick="selectMgr(this,'문성환 지점장', 'step-2')">
               <span class="sf-cat-ico">👨‍💼</span>
               <div>
                 <div class="sf-cat-name">문성환 지점장</div>
                 <div class="sf-cat-desc">제주 최고의 가전 전문가 · 리뷰가 증명</div>
               </div>
             </button>
-            <button class="sf-cat" onclick="selectMgr(this,'고부경 매니저')">
-              <span class="sf-cat-ico">👩‍💼</span>
+            <button class="sf-cat" onclick="selectMgr(this,'고부경 매니저', 'step-2')">
+              <span class="sf-cat-ico">👨‍💼</span>
               <div>
                 <div class="sf-cat-name">고부경 매니저</div>
                 <div class="sf-cat-desc">요점만 간단히 · 귀에 쏙쏙 설명</div>
               </div>
             </button>
-            <button class="sf-cat" onclick="selectMgr(this,'박찬호 매니저')">
+            <button class="sf-cat" onclick="selectMgr(this,'박찬호 매니저', 'step-2')">
               <span class="sf-cat-ico">🧑‍💼</span>
               <div>
                 <div class="sf-cat-name">박찬호 매니저</div>
                 <div class="sf-cat-desc">편하게, 제대로, 끝까지 책임</div>
               </div>
             </button>
-            <button class="sf-cat" onclick="selectMgr(this,'상관없음')">
+            <button class="sf-cat" onclick="selectMgr(this,'상관없음', 'step-2')">
               <span class="sf-cat-ico">✅</span>
               <div>
                 <div class="sf-cat-name">상관없어요</div>
@@ -857,13 +864,30 @@ function gtag_report_conversion(url) {
           <div class="sf-step-q">거의 다 됐어요!</div>
           <div class="sf-step-sub">연락처만 남겨주시면 매니저가 직접 연락드릴게요.</div>
           <div style="background:#fff8e1;border-radius:10px;padding:11px 14px;font-size:13px;color:#7a5c00;margin-bottom:18px">☕ 홈페이지로 신청하고 방문하시면 커피 쿠폰을 드립니다!</div>
-          <div class="rf">
-            <label>이름<span class="rf-req">*</span></label>
-            <input type="text" id="rf-name" placeholder="홍길동" oninput="checkFinal()">
+          <div class="resv-row">
+            <div class="rf">
+              <label>이름<span class="rf-req">*</span></label>
+              <input type="text" id="rf-name" placeholder="홍길동" oninput="checkFinal()">
+            </div>
+            <div class="rf">
+              <label>연락처<span class="rf-req">*</span></label>
+              <input type="tel" id="rf-phone" placeholder="010-0000-0000" oninput="checkFinal()">
+            </div>
           </div>
           <div class="rf">
-            <label>연락처<span class="rf-req">*</span></label>
-            <input type="tel" id="rf-phone" placeholder="010-0000-0000" oninput="checkFinal()">
+            <label>방문 예정일시 <span style="font-size:11px;font-weight:400;color:var(--g400)">(미정이면 비워도 됩니다)</span></label>
+            <input type="text" id="rf-visit" placeholder="예: 5월 20일 오후 2시쯤, 이번 주말 중">
+          </div>
+          <div class="rf">
+            <label>통화 가능 시간대<span class="rf-req">*</span></label>
+            <select id="rf-calltime" onchange="checkFinal()">
+              <option value="">선택해주세요</option>
+              <option>오전 (10:00~12:00)</option>
+              <option>점심 (12:00~14:00)</option>
+              <option>오후 (14:00~18:00)</option>
+              <option>저녁 (18:00~20:00)</option>
+              <option>언제든지 가능</option>
+            </select>
           </div>
           <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:20px;padding:14px;background:var(--g100);border-radius:10px">
             <input type="checkbox" id="rf-agree" style="margin-top:3px;width:15px;height:15px;accent-color:var(--red);flex-shrink:0;cursor:pointer" onchange="checkFinal()">
@@ -2162,7 +2186,7 @@ function closeMob(){
 }
 
 // ── 예약 폼 스텝퍼
-const RESV_SCRIPT_URL = 'YOUR_APPS_SCRIPT_URL_HERE';
+const RESV_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzr0Qgk3ZNM7mnWN4waruK84SXmjsV_K1wqESu9rVJgQpMLqdYqIZnqvJSJqmL4MXkY/exec';
 let sfData = {products:[], category:'', manager:''};
 
 function toggleChip(el){
@@ -2171,15 +2195,15 @@ function toggleChip(el){
   document.getElementById('btn-0').disabled = sfData.products.length === 0;
 }
 
-function selectCat(el, val){
-  document.querySelectorAll('.sf-cat').forEach(c=>c.classList.remove('sel'));
+function selectCat(el, val, stepId){
+  document.querySelectorAll('#'+stepId+' .sf-cat').forEach(c=>c.classList.remove('sel'));
   el.classList.add('sel');
   sfData.category = val;
   setTimeout(()=>goStep(2), 260);
 }
 
-function selectMgr(el, val){
-  document.querySelectorAll('#step-2 .sf-cat').forEach(c=>c.classList.remove('sel'));
+function selectMgr(el, val, stepId){
+  document.querySelectorAll('#'+stepId+' .sf-cat').forEach(c=>c.classList.remove('sel'));
   el.classList.add('sel');
   sfData.manager = val;
   setTimeout(()=>goStep(3), 260);
@@ -2196,8 +2220,9 @@ function goStep(n){
 function checkFinal(){
   const name = document.getElementById('rf-name').value.trim();
   const phone = document.getElementById('rf-phone').value.trim();
+  const calltime = document.getElementById('rf-calltime') ? document.getElementById('rf-calltime').value : 'ok';
   const agree = document.getElementById('rf-agree').checked;
-  document.getElementById('btn-final').disabled = !(name && phone && agree);
+  document.getElementById('btn-final').disabled = !(name && phone && calltime && agree);
 }
 
 async function submitReservation(){
@@ -2212,12 +2237,16 @@ async function submitReservation(){
   btn.disabled = true;
   btn.textContent = '⏳ 제출 중...';
 
+  const visit = document.getElementById('rf-visit') ? document.getElementById('rf-visit').value.trim() : '';
+  const calltime = document.getElementById('rf-calltime') ? document.getElementById('rf-calltime').value : '';
   const payload = {
     timestamp: new Date().toLocaleString('ko-KR', {timeZone:'Asia/Seoul'}),
     name, phone,
     product: sfData.products.join(', '),
     category: sfData.category,
-    manager: sfData.manager
+    manager: sfData.manager,
+    visit,
+    calltime
   };
 
   try {
