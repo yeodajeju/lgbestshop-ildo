@@ -302,7 +302,7 @@ footer{background:var(--black);padding:44px 8%;color:rgba(255,255,255,.4)}
 .news-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
 .news-card{background:#fff;border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column}
 .news-card.first{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:0}
-.news-card.first .news-card-img-wrap{height:100%;min-height:220px}
+.news-card.first .news-card-img-wrap{display:flex;align-items:center;justify-content:center;overflow:hidden;background:#f8f8f8}
 .news-card.first .news-card-body{padding:24px}
 .news-card.first .news-card-title{font-size:16px;margin-bottom:10px}
 .news-card-img-wrap-sm{width:100%;height:140px;background:var(--g100);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:28px}
@@ -788,9 +788,18 @@ function gtag_report_conversion(url) {
       <div class="bdesc">가전 구매는 다다익선. 혼수·이사 전용 혜택으로 더 합리적인 구매 가능</div>
     </div>
   </div>
+
+  <!-- 혜택 섹션 CTA -->
+  <div style="margin-top:36px;text-align:center">
+    <a href="https://m.place.naver.com/place/1607379211/home" target="_blank"
+      style="display:inline-flex;align-items:center;gap:8px;background:var(--red);color:#fff;padding:14px 32px;border-radius:100px;font-size:15px;font-weight:700;text-decoration:none;box-shadow:0 4px 16px rgba(200,16,46,.3)"
+      onclick="gtag('event','reservation_click',{event_category:'conversion',event_label:'benefits_cta'}); gtag_report_conversion(); fbq('track','Lead');">
+      🎁 일도점 단독 혜택 받기
+    </a>
+  </div>
 </section>
 
-<!-- MEDIA -->
+<!-- MEDIA --><!-- MEDIA -->
 <section class="media-sec" id="media" style="background:#000;position:relative;z-index:5">
   <div class="slabel fi" style="color:#ff8097">Media</div>
   <h2 class="stitle fi">일도점 <span>미디어</span></h2>
