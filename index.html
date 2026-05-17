@@ -2186,7 +2186,7 @@ function closeMob(){
 }
 
 // ── 예약 폼 스텝퍼
-const RESV_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzr0Qgk3ZNM7mnWN4waruK84SXmjsV_K1wqESu9rVJgQpMLqdYqIZnqvJSJqmL4MXkY/exec';
+const RESV_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz3kjOj4AMTJTJNGiQ4l-da0T0kpaz_XGVhl66zWjB2ZnXstlU72CbsjcZ_mbl7rf5g/exec';
 let sfData = {products:[], category:'', manager:''};
 
 function toggleChip(el){
@@ -2225,59 +2225,66 @@ function checkFinal(){
   document.getElementById('btn-final').disabled = !(name && phone && calltime && agree);
 }
 
-async function submitReservation(){
+function submitReservation(){
   const name  = document.getElementById('rf-name').value.trim();
   const phone = document.getElementById('rf-phone').value.trim();
+  const calltime = document.getElementById('rf-calltime') ? document.getElementById('rf-calltime').value : '';
 
   if(!name){ alert('이름을 입력해주세요.'); return; }
   if(!phone){ alert('연락처를 입력해주세요.'); return; }
+  if(!calltime){ alert('통화 가능 시간대를 선택해주세요.'); return; }
   if(!document.getElementById('rf-agree').checked){ alert('개인정보 수집·이용 동의가 필요합니다.'); return; }
 
-  const btn = document.getElementById('resv-btn');
+  const btn = document.getElementById('btn-final');
   btn.disabled = true;
   btn.textContent = '⏳ 제출 중...';
 
   const visit = document.getElementById('rf-visit') ? document.getElementById('rf-visit').value.trim() : '';
-  const calltime = document.getElementById('rf-calltime') ? document.getElementById('rf-calltime').value : '';
-  const payload = {
-    timestamp: new Date().toLocaleString('ko-KR', {timeZone:'Asia/Seoul'}),
-    name, phone,
+  const timestamp = new Date().toLocaleString('ko-KR', {timeZone:'Asia/Seoul'});
+
+  // hidden iframe으로 form submit (CORS 우회)
+  const iframe = document.createElement('iframe');
+  iframe.name = 'resv-iframe';
+  iframe.style.display = 'none';
+  document.body.appendChild(iframe);
+
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = RESV_SCRIPT_URL;
+  form.target = 'resv-iframe';
+  form.enctype = 'application/x-www-form-urlencoded';
+
+  const fields = {
+    timestamp, name, phone,
     product: sfData.products.join(', '),
     category: sfData.category,
     manager: sfData.manager,
-    visit,
-    calltime
+    visit, calltime
   };
+  for(const key in fields){
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = key;
+    input.value = fields[key];
+    form.appendChild(input);
+  }
+  document.body.appendChild(form);
+  form.submit();
 
-  try {
-    await fetch(RESV_SCRIPT_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify(payload)
-    });
+  // GA4 전환 이벤트
+  if(typeof gtag === 'function'){
+    gtag('event', 'form_submit', {event_category:'conversion', event_label:'reservation_form', value:1});
+    try{ gtag_report_conversion(); }catch(e){}
+  }
+  if(typeof fbq === 'function') fbq('track', 'Lead');
 
-    // GA4 전환 이벤트
-    if(typeof gtag === 'function'){
-      gtag('event', 'form_submit', {
-        event_category: 'conversion',
-        event_label: 'reservation_form',
-        value: 1
-      });
-      gtag_report_conversion();
-    }
-    if(typeof fbq === 'function') fbq('track', 'Lead');
-
-    // 완료 화면
+  // 1초 후 완료 화면 (form submit은 비동기 응답 불가)
+  setTimeout(function(){
     document.getElementById('resv-form-body').style.display = 'none';
     document.getElementById('resv-success').style.display = 'block';
-
-  } catch(e) {
-    console.error('예약 제출 오류:', e);
-    btn.disabled = false;
-    btn.textContent = '📅 상담 신청하기';
-    alert('제출 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.\n직접 연락: 064-758-7722');
-  }
+    document.body.removeChild(form);
+    document.body.removeChild(iframe);
+  }, 1200);
 }
 
 // 초기화
