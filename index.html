@@ -1168,6 +1168,7 @@ function gtag_report_conversion(url) {
           <a href="https://docs.google.com/spreadsheets/d/1J5hu3hDcTIz06vqbekt9tCxIqdXugyODjTWuDaTDxvo/edit" target="_blank" class="apsheetlink">📊 구글 시트 열기 →</a>
         </div>
         <button class="apbtn" onclick="loadPopupSheet(true)" style="margin-bottom:8px">🔄 시트에서 새로 불러오기</button>
+        <button class="apbtn" onclick="sessionStorage.removeItem('ildo_popup_closed');loadPopupSheet(true);" style="margin-bottom:8px;background:#555">🧪 강제 테스트 (세션 초기화 후 불러오기)</button>
         <div id="ap-popup-status"></div>
       </div>
       <div class="apsec" id="ap-media">
@@ -2116,10 +2117,10 @@ async function loadPopupSheet(manual=false){
     const rows = json.table.rows || [];
     if(rows.length > 1){
       const dataRows = rows.slice(1); // 헤더 제외
+      // 드롭다운 셀은 .v 또는 .f 둘 다 체크
+      function getColVal(cell){ return ((cell?.v ?? cell?.f) || '').toString().toLowerCase().trim(); }
       // on인 행 자동 탐색
-      const activeRow = dataRows.find(row =>
-        (row.c[4]?.v || '').toString().toLowerCase().trim() === 'on'
-      );
+      const activeRow = dataRows.find(row => getColVal(row.c[4]) === 'on');
       if(activeRow){
         popupData = {
           active: 'on',
@@ -2133,7 +2134,7 @@ async function loadPopupSheet(manual=false){
       }
       // off 행들은 아카이브로 저장
       popupArchive = dataRows
-        .filter(row => (row.c[4]?.v || '').toString().toLowerCase().trim() === 'off')
+        .filter(row => getColVal(row.c[4]) === 'off')
         .map(row => ({
           title:  row.c[0]?.v || '(제목 없음)',
           desc:   row.c[1]?.v || '',
