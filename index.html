@@ -290,6 +290,12 @@ footer{background:var(--black);padding:44px 8%;color:rgba(255,255,255,.4)}
 .popup-footer{display:flex;justify-content:space-between;align-items:center;padding:12px 24px;border-top:1px solid var(--g100);background:var(--g100)}
 .popup-today{background:none;border:none;font-size:12px;color:var(--g400);cursor:pointer;font-family:var(--sans)}
 .popup-close-btn{background:none;border:none;font-size:12px;color:var(--g700);cursor:pointer;font-family:var(--sans);font-weight:600}
+.popup-archive-list{margin-top:10px;display:flex;flex-direction:column;gap:6px}
+.popup-archive-item{display:flex;align-items:center;gap:10px;background:#f9f9f9;border:1px solid #eee;border-radius:8px;padding:10px 14px;cursor:pointer;transition:all .2s}
+.popup-archive-item:hover{border-color:var(--red);background:var(--red-light)}
+.pa-num{width:20px;height:20px;background:var(--red);color:#fff;border-radius:50%;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.pa-title{flex:1;font-size:13px;font-weight:600;color:var(--black)}
+.pa-arr{font-size:11px;color:var(--red);font-weight:600;white-space:nowrap}
 
 
 /* MEDIA */
@@ -1156,6 +1162,8 @@ function gtag_report_conversion(url) {
         <div class="apnotice">
           팝업은 <strong>구글 시트 [팝업] 탭</strong>에서 수정하세요.<br><br>
           <strong>열 순서:</strong> A제목 | B내용 | C버튼링크 | D이미지URL | E사용여부(on/off)<br>
+          • E열이 <strong>on</strong>인 행이 현재 팝업으로 표시됩니다 (여러 행 중 첫 번째 on 행)<br>
+          • E열이 <strong>off</strong>인 행은 자동으로 <strong>아카이브</strong>에 저장되어 미리보기 가능<br>
           내용 줄바꿈은 셀 안에서 <strong>Alt+Enter</strong> 사용<br><br>
           <a href="https://docs.google.com/spreadsheets/d/1J5hu3hDcTIz06vqbekt9tCxIqdXugyODjTWuDaTDxvo/edit" target="_blank" class="apsheetlink">📊 구글 시트 열기 →</a>
         </div>
@@ -2093,6 +2101,7 @@ function clearPopupImg(){
 
 // ── 팝업 (구글 시트 연동)
 let popupData = {active:'off',title:'',desc:'',link:'',imgUrl:''};
+let popupArchive = []; // off된 팝업 아카이브
 
 async function loadPopupSheet(manual=false){
   if(manual){
@@ -2106,19 +2115,49 @@ async function loadPopupSheet(manual=false){
     const json = JSON.parse(text.replace(/^[^(]+\(/, '').replace(/\);?$/, ''));
     const rows = json.table.rows || [];
     if(rows.length > 1){
-      const r = rows[1]; // 0행은 헤더, 1행부터 데이터
-      popupData = {
-        active: (r.c[4]?.v || 'off').toString().toLowerCase().trim(),
-        title:  r.c[0]?.v || '',
-        desc:   r.c[1]?.v || '',
-        link:   r.c[2]?.v || '',
-        imgUrl: convertDriveUrl(r.c[3]?.v || '')
-      };
+      const dataRows = rows.slice(1); // 헤더 제외
+      // on인 행 자동 탐색
+      const activeRow = dataRows.find(row =>
+        (row.c[4]?.v || '').toString().toLowerCase().trim() === 'on'
+      );
+      if(activeRow){
+        popupData = {
+          active: 'on',
+          title:  activeRow.c[0]?.v || '',
+          desc:   activeRow.c[1]?.v || '',
+          link:   activeRow.c[2]?.v || '',
+          imgUrl: convertDriveUrl(activeRow.c[3]?.v || '')
+        };
+      } else {
+        popupData.active = 'off';
+      }
+      // off 행들은 아카이브로 저장
+      popupArchive = dataRows
+        .filter(row => (row.c[4]?.v || '').toString().toLowerCase().trim() === 'off')
+        .map(row => ({
+          title:  row.c[0]?.v || '(제목 없음)',
+          desc:   row.c[1]?.v || '',
+          link:   row.c[2]?.v || '',
+          imgUrl: convertDriveUrl(row.c[3]?.v || '')
+        }))
+        .filter(row => row.title !== '(제목 없음)' || row.desc);
     }
     initPopup();
     if(manual){
       const s = document.getElementById('ap-popup-status');
-      if(s) s.innerHTML='<div class="sheet-status ok">✅ 팝업 정보를 불러왔습니다!</div>';
+      if(s){
+        const archiveHtml = popupArchive.length > 0
+          ? `<div class="sheet-status ok">✅ 팝업 불러오기 완료 (활성 ${popupData.active==='on'?1:0}개 / 아카이브 ${popupArchive.length}개)</div>
+             <div class="popup-archive-list">${popupArchive.map((p,i)=>`
+               <div class="popup-archive-item" onclick="previewArchivePopup(${i})">
+                 <span class="pa-num">${i+1}</span>
+                 <span class="pa-title">${p.title}</span>
+                 <span class="pa-arr">미리보기 →</span>
+               </div>`).join('')}
+             </div>`
+          : `<div class="sheet-status ok">✅ 팝업 정보를 불러왔습니다! (아카이브 없음)</div>`;
+        s.innerHTML = archiveHtml;
+      }
     }
   } catch(e) {
     console.error('팝업 시트 로드 실패', e);
@@ -2127,6 +2166,27 @@ async function loadPopupSheet(manual=false){
       if(s) s.innerHTML='<div class="sheet-status err">❌ 불러오기 실패. 시트 공유 설정을 확인하세요.</div>';
     }
   }
+}
+
+function previewArchivePopup(idx){
+  const p = popupArchive[idx];
+  if(!p) return;
+  document.getElementById('popup-title').innerHTML = (p.title||'').replace(/\n/g,'<br>');
+  document.getElementById('popup-desc').innerHTML = (p.desc||'').replace(/\n/g,'<br>');
+  document.getElementById('popup-link').setAttribute('data-href', p.link||'');
+  const wrap = document.getElementById('popup-img-wrap');
+  const existImg = wrap.querySelector('.popup-img');
+  if(existImg) existImg.remove();
+  if(p.imgUrl){
+    document.getElementById('popup-placeholder').style.display='none';
+    const img = document.createElement('img');
+    img.src = p.imgUrl; img.className='popup-img'; img.alt=p.title;
+    img.style.width='100%'; img.style.display='block';
+    wrap.appendChild(img);
+  } else {
+    document.getElementById('popup-placeholder').style.display='flex';
+  }
+  document.getElementById('popup-overlay').style.display='flex';
 }
 
 function initPopup(){
