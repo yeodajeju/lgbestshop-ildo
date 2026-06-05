@@ -1633,7 +1633,7 @@ async function loadNewsSheet(manual=false){
       else { cur2+=c; }
     }
     if(cur2||rowCols.length){ rowCols.push(cur2); rows2.push(rowCols); }
-    const rows = rows2.slice(1).filter(r=>r[0]&&r[0].trim());
+    const rows = rows2.slice(1).filter(r=>r[0]&&r[0].trim()).reverse();
     newsData = [];
     rows.forEach(cols=>{
       cols = cols.map(c=>(c||'').trim());
