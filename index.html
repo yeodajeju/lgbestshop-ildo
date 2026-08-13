@@ -548,18 +548,32 @@ function gtag_report_conversion(url) {
   var CAMPAIGN_SHEET_ID = '1J5hu3hDcTIz06vqbekt9tCxIqdXugyODjTWuDaTDxvo';
   var CAMPAIGN_SHEET_NAME = '캠페인';
 
-  function parseCsvRow(row) {
-    var cols = [], cur = '', inQ = false;
-    for (var i = 0; i < row.length; i++) {
-      var c = row[i];
-      if (c === '"' && !inQ) { inQ = true; }
-      else if (c === '"' && inQ && row[i + 1] === '"') { cur += '"'; i++; }
-      else if (c === '"' && inQ) { inQ = false; }
-      else if (c === ',' && !inQ) { cols.push(cur); cur = ''; }
-      else { cur += c; }
+  function parseCsv(text) {
+    // 줄 단위로 먼저 자르지 않고 전체 텍스트를 문자 단위로 파싱한다.
+    // 셀 안에서 Alt+Enter로 줄바꿈된 값(따옴표로 감싸진 필드 안의 개행)이
+    // 실제 행 구분과 섞이지 않도록 하기 위함.
+    var rows = [], row = [], cur = '', inQ = false;
+    for (var i = 0; i < text.length; i++) {
+      var c = text[i];
+      if (inQ) {
+        if (c === '"') {
+          if (text[i + 1] === '"') { cur += '"'; i++; }
+          else { inQ = false; }
+        } else {
+          cur += c;
+        }
+      } else {
+        if (c === '"') { inQ = true; }
+        else if (c === ',') { row.push(cur); cur = ''; }
+        else if (c === '\r') { /* skip, \n이 뒤따라옴 */ }
+        else if (c === '\n') { row.push(cur); rows.push(row); row = []; cur = ''; }
+        else { cur += c; }
+      }
     }
-    cols.push(cur);
-    return cols.map(function (s) { return s.replace(/\r/g, '').trim(); });
+    if (cur !== '' || row.length) { row.push(cur); rows.push(row); }
+    return rows.map(function (r) {
+      return r.map(function (s) { return s.trim(); });
+    });
   }
 
   function applyCampaign(data) {
@@ -587,10 +601,10 @@ function gtag_report_conversion(url) {
       var res = await fetch(url);
       if (!res.ok) throw new Error('HTTP ' + res.status);
       var text = await res.text();
-      var rows = text.trim().split('\n').slice(1); // 첫 줄(헤더) 제외
+      var rows = parseCsv(text).slice(1); // 첫 줄(헤더) 제외
 
       for (var i = 0; i < rows.length; i++) {
-        var cols = parseCsvRow(rows[i]);
+        var cols = rows[i];
         if (!cols[0]) continue;
         if (cols[0] === campaignKey) {
           // G열(on/off): off인 캠페인은 링크가 살아있어도 기본 히어로를 유지한다
