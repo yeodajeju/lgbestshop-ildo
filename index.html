@@ -588,6 +588,10 @@ function gtag_report_conversion(url) {
     if (typeof gtag === 'function') {
       gtag('event', 'hero_campaign_view', { event_category: 'campaign', event_label: data.key });
     }
+    // 다음 방문 시 깜빡임(FOUC) 없이 즉시 반영되도록 로컬에 캐시
+    try {
+      localStorage.setItem('campaignCache_' + data.key, JSON.stringify(data));
+    } catch (e) {}
   }
 
   async function loadCampaignHero() {
@@ -595,6 +599,13 @@ function gtag_report_conversion(url) {
       var params = new URLSearchParams(window.location.search);
       var campaignKey = params.get('campaign');
       if (!campaignKey) return; // 파라미터 없으면 기본 문구 유지, 시트 요청도 생략
+
+      // 구글 시트 응답을 기다리는 동안 기본 문구가 잠깐 노출되는 깜빡임(FOUC)을 막기 위해
+      // 이전에 캐시해둔 값이 있으면 fetch 전에 동기적으로 먼저 적용한다.
+      try {
+        var cached = localStorage.getItem('campaignCache_' + campaignKey);
+        if (cached) applyCampaign(JSON.parse(cached));
+      } catch (e) {}
 
       var url = 'https://docs.google.com/spreadsheets/d/' + CAMPAIGN_SHEET_ID +
         '/gviz/tq?tqx=out:csv&sheet=' + encodeURIComponent(CAMPAIGN_SHEET_NAME) + '&t=' + Date.now();
