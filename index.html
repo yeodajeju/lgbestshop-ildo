@@ -542,7 +542,7 @@ function gtag_report_conversion(url) {
 //
 // 시트 [캠페인] 탭 형식:
 // A열: 캠페인key | B열: 배지문구 | C열: 제목(Alt+Enter) | D열: 설명(Alt+Enter) | E열: 버튼문구
-// F열: 광고링크(자동 수식) | G열: 범주(I열 참조 드롭다운) | H열: on/off
+// F열: 주소(메모용, 사이트는 안 읽음) | G열: on/off | H열: (미사용) | I열: 범주(메모용, 사이트는 안 읽음)
 // H열이 on이 아닌 행은 캠페인key로 접속해도 기본 히어로가 그대로 유지된다(비활성 처리)
 (function () {
   var CAMPAIGN_SHEET_ID = '1J5hu3hDcTIz06vqbekt9tCxIqdXugyODjTWuDaTDxvo';
@@ -593,8 +593,8 @@ function gtag_report_conversion(url) {
         var cols = parseCsvRow(rows[i]);
         if (!cols[0]) continue;
         if (cols[0] === campaignKey) {
-          // H열(on/off): off인 캠페인은 링크가 살아있어도 기본 히어로를 유지한다
-          var status = (cols[7] || '').toLowerCase();
+          // G열(on/off): off인 캠페인은 링크가 살아있어도 기본 히어로를 유지한다
+          var status = (cols[6] || '').toLowerCase();
           if (status !== 'on') break;
           applyCampaign({
             key: cols[0],
