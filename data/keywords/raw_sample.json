@@ -1,0 +1,68 @@
+[
+ {
+  "relKeyword": "세탁기",
+  "monthlyPcQcCnt": 19900,
+  "monthlyMobileQcCnt": 82700,
+  "plAvgDepth": 8,
+  "compIdx": "높음",
+  "monthlyAvePcClkCnt": 83.5,
+  "monthlyAveMobileClkCnt": 1035.9,
+  "monthlyAvePcCtr": 0.47,
+  "monthlyAveMobileCtr": 1.37
+ },
+ {
+  "relKeyword": "건조기",
+  "monthlyPcQcCnt": 8150,
+  "monthlyMobileQcCnt": 44700,
+  "plAvgDepth": 8,
+  "compIdx": "높음",
+  "monthlyAvePcClkCnt": 33.6,
+  "monthlyAveMobileClkCnt": 459.3,
+  "monthlyAvePcCtr": 0.46,
+  "monthlyAveMobileCtr": 1.18
+ },
+ {
+  "relKeyword": "김치냉장고",
+  "monthlyPcQcCnt": 11600,
+  "monthlyMobileQcCnt": 69700,
+  "plAvgDepth": 8,
+  "compIdx": "중간",
+  "monthlyAvePcClkCnt": 133.3,
+  "monthlyAveMobileClkCnt": 2123.1,
+  "monthlyAvePcCtr": 1.28,
+  "monthlyAveMobileCtr": 3.27
+ },
+ {
+  "relKeyword": "냉장고",
+  "monthlyPcQcCnt": 32800,
+  "monthlyMobileQcCnt": 137000,
+  "plAvgDepth": 8,
+  "compIdx": "중간",
+  "monthlyAvePcClkCnt": 201.5,
+  "monthlyAveMobileClkCnt": 2322.0,
+  "monthlyAvePcCtr": 0.68,
+  "monthlyAveMobileCtr": 1.82
+ },
+ {
+  "relKeyword": "스타일러",
+  "monthlyPcQcCnt": 7300,
+  "monthlyMobileQcCnt": 34800,
+  "plAvgDepth": 8,
+  "compIdx": "중간",
+  "monthlyAvePcClkCnt": 29.3,
+  "monthlyAveMobileClkCnt": 540.0,
+  "monthlyAvePcCtr": 0.46,
+  "monthlyAveMobileCtr": 1.66
+ },
+ {
+  "relKeyword": "드럼세탁기",
+  "monthlyPcQcCnt": 4580,
+  "monthlyMobileQcCnt": 33400,
+  "plAvgDepth": 10,
+  "compIdx": "높음",
+  "monthlyAvePcClkCnt": 8.9,
+  "monthlyAveMobileClkCnt": 125.6,
+  "monthlyAvePcCtr": 0.22,
+  "monthlyAveMobileCtr": 0.41
+ }
+]
