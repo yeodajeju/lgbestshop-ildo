@@ -29,6 +29,9 @@ def classify(text):
 def clean(raw, n=70):
     t = re.sub(r"<[^>]+>", " ", html.unescape(raw or ""))
     t = re.sub(r"\s+", " ", html.unescape(t)).strip()
+    if n > 80 or n == 70:  # 요약문: 맨 앞 인사말·자기소개 제거
+        m = re.search(r"첫째\s*아들\s*입니다[.!\s]*", t[:80])
+        t = t[m.end():] if m else re.sub(r"^안녕하세요[.!,\s]*", "", t)
     return (t[:n].rstrip() + "…") if len(t) > n else t
 
 def parse(xml_text):
