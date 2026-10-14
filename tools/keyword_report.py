@@ -20,7 +20,13 @@ def fetch(seeds, cid, lic, secret):
     r = requests.get(BASE + path, headers=headers, timeout=30,
                      params={"hintKeywords": ",".join(seeds), "showDetail": "1"})
     r.raise_for_status()
-    return r.json().get("keywordList", [])
+    data = r.json().get("keywordList", [])
+    if not getattr(fetch, "_dumped", False):  # 첫 응답 원본 일부를 점검용으로 저장
+        import json
+        OUT.mkdir(parents=True, exist_ok=True)
+        (OUT / "raw_sample.json").write_text(json.dumps(data[:6], ensure_ascii=False, indent=1), encoding="utf-8")
+        fetch._dumped = True
+    return data
 
 def num(v):
     # 검색량이 적으면 "< 10" 처럼 문자로 옴 → 5로 간주
