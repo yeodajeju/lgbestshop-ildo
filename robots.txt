@@ -1,0 +1,23 @@
+# LG전자 베스트샵 일도점 (https://lgbestshop-ildo.kr)
+# 검색엔진과 AI 검색 봇이 홈페이지를 읽을 수 있도록 허용합니다.
+
+User-agent: *
+Allow: /
+
+# AI 검색 답변에 인용되기 위한 봇 (허용)
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: Claude-SearchBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Googlebot
+Allow: /
+
+Sitemap: https://lgbestshop-ildo.kr/sitemap.xml
