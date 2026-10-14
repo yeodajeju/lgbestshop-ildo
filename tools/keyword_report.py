@@ -21,11 +21,6 @@ def fetch(seeds, cid, lic, secret):
                      params={"hintKeywords": ",".join(seeds), "showDetail": "1"})
     r.raise_for_status()
     data = r.json().get("keywordList", [])
-    if not getattr(fetch, "_dumped", False):  # 첫 응답 원본 일부를 점검용으로 저장
-        import json
-        OUT.mkdir(parents=True, exist_ok=True)
-        (OUT / "raw_sample.json").write_text(json.dumps(data[:6], ensure_ascii=False, indent=1), encoding="utf-8")
-        fetch._dumped = True
     return data
 
 def num(v):
@@ -44,13 +39,14 @@ def main():
     for i in range(0, len(seeds), 5):
         for k in fetch(seeds[i:i + 5], cid, lic, secret):
             kw = k["relKeyword"]
-            pc, mo = num(k.get("monthlyPcQryCnt")), num(k.get("monthlyMobileQryCnt"))
+            pc, mo = num(k.get("monthlyPcQcCnt")), num(k.get("monthlyMobileQcCnt"))
             rows[kw] = {"keyword": kw, "pc": pc, "mobile": mo, "total": pc + mo,
-                        "competition": k.get("compIdx", ""), "avg_ad_depth": k.get("plAvgDepth", "")}
+                        "competition": k.get("compIdx", ""), "avg_ad_depth": k.get("plAvgDepth", ""),
+                        "avg_clicks": round(num(k.get("monthlyAvePcClkCnt")) + num(k.get("monthlyAveMobileClkCnt")), 1)}
         time.sleep(0.5)
     ranked = sorted(rows.values(), key=lambda x: x["total"], reverse=True)[:400]
     OUT.mkdir(parents=True, exist_ok=True)
-    cols = ["keyword", "pc", "mobile", "total", "competition", "avg_ad_depth"]
+    cols = ["keyword", "pc", "mobile", "total", "competition", "avg_ad_depth", "avg_clicks"]
     with open(OUT / f"{today}.csv", "w", newline="", encoding="utf-8-sig") as f:
         w = csv.DictWriter(f, fieldnames=cols); w.writeheader(); w.writerows(ranked)
     # 기준 키워드의 날짜별 기록 (추이 계산용)
