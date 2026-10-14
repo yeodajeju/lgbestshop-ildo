@@ -1,0 +1,34 @@
+name: 인스타그램 이미지 홈페이지 반영
+
+on:
+  schedule:
+    - cron: "10 22 * * *"   # 한국시간 07:10
+    - cron: "10 10 * * *"   # 한국시간 19:10
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: site-data-push
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install requests pillow
+      - name: 인스타그램 최신 게시물 읽기
+        env:
+          WINDSOR_API_KEY: ${{ secrets.WINDSOR_API_KEY }}
+        run: python tools/instagram_sync.py
+      - name: 변경이 있으면 저장
+        run: |
+          git config user.name "instagram-sync-bot"
+          git config user.email "instagram-sync-bot@users.noreply.github.com"
+          git add index.html images/instagram
+          git diff --cached --quiet || { git commit -m "인스타그램 최신 게시물 이미지 반영 $(date -u +%F)"; git pull --rebase origin main; git push; }
