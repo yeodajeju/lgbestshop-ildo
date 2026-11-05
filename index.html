@@ -604,7 +604,7 @@ function gtag_report_conversion(url) {
 //
 // 시트 [캠페인] 탭 형식:
 // A열: 캠페인key | B열: 배지문구 | C열: 제목(Alt+Enter) | D열: 설명(Alt+Enter) | E열: 버튼문구
-// F열: 주소(메모용, 사이트는 안 읽음) | G열: on/off | H열: (미사용) | I열: 범주(메모용, 사이트는 안 읽음)
+// F열: 주소(메모용, 사이트는 안 읽음) | G열: on/off | H열: 버튼링크(선택, https 주소를 넣으면 두 번째 버튼이 그 주소를 새 탭으로 연다) | I열: 범주(메모용, 사이트는 안 읽음)
 // H열이 on이 아닌 행은 캠페인key로 접속해도 기본 히어로가 그대로 유지된다(비활성 처리)
 (function () {
   var CAMPAIGN_SHEET_ID = '1J5hu3hDcTIz06vqbekt9tCxIqdXugyODjTWuDaTDxvo';
@@ -647,6 +647,15 @@ function gtag_report_conversion(url) {
     if (titleEl && data.title) titleEl.innerHTML = data.title.replace(/\n/g, '<br>');
     if (descEl && data.desc) descEl.innerHTML = data.desc.replace(/\n/g, '<br>');
     if (ctaEl && data.cta) ctaEl.textContent = data.cta;
+    // H열(버튼링크)에 주소가 있으면 두 번째 버튼이 그 주소를 새 탭으로 연다(예: 웨딩 신혼생활 테스트)
+    if (ctaEl && data.link && /^https?:\/\//.test(data.link)) {
+      ctaEl.setAttribute('href', data.link);
+      ctaEl.setAttribute('target', '_blank');
+      ctaEl.setAttribute('rel', 'noopener');
+      ctaEl.onclick = function () {
+        if (typeof gtag === 'function') gtag('event', 'campaign_link_click', { event_category: 'campaign', event_label: data.key });
+      };
+    }
     if (typeof gtag === 'function') {
       gtag('event', 'hero_campaign_view', { event_category: 'campaign', event_label: data.key });
     }
@@ -688,7 +697,8 @@ function gtag_report_conversion(url) {
             badge: cols[1],
             title: cols[2],
             desc: cols[3],
-            cta: cols[4]
+            cta: cols[4],
+            link: cols[7]
           });
           break;
         }
