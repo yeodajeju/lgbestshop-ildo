@@ -160,6 +160,9 @@ section{padding:72px 8%}
 .cal-banner-body{overflow:hidden;max-height:0;transition:max-height .25s ease}
 .cal-banner-body.open{max-height:300px}
 .cal-banner.has-img .cal-banner-body.open{max-height:1100px}
+.top-strip{display:none;margin-top:60px;background:#C8102E;color:#fff;text-align:center;font-size:13px;font-weight:700;padding:9px 12px;text-decoration:none;line-height:1.4}
+.top-strip.show{display:block}
+.top-strip.show + .hero, .top-strip.show ~ .hero{margin-top:0}
 .cal-banner-img{display:block;width:100%;max-width:420px;margin:10px auto 0;border-radius:10px}
 .cal-banner-cta{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
 .cal-banner-cta a{flex:1;min-width:120px;text-align:center;padding:10px 12px;border-radius:8px;font-size:12px;font-weight:700;text-decoration:none;background:#C8102E;color:#fff}
@@ -530,6 +533,7 @@ function gtag_report_conversion(url) {
     <span></span><span></span><span></span>
   </button>
 </nav>
+<a class="top-strip" id="top-strip" href="#events" onclick="gtag('event','event_strip_click',{event_category:'engagement',event_label:'top_strip'})"></a>
 <!-- 모바일 메뉴 -->
 <div class="mob-menu" id="mob-menu">
   <a href="#about" onclick="closeMob()">매장소개</a>
@@ -1617,6 +1621,16 @@ async function loadSheet(manual=false){
 
     const cnt=Object.keys(calEvs).length;
     const evCnt = rows.filter(c=>c[0]&&/^\d{4}/.test(c[0])).length;
+    // 상단 띠 배너: 오늘 진행 중이며 이미지가 등록된 이벤트가 있으면 표시
+    try{
+      const n=new Date(),tk=n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0')+'-'+String(n.getDate()).padStart(2,'0');
+      const hit=(calEvs[tk]||[]).find(e=>e.img);
+      const strip=document.getElementById('top-strip');
+      if(strip){
+        if(hit){strip.textContent='🎉 '+hit.title+' 진행 중 · 이벤트 보기 ›';strip.classList.add('show');}
+        else strip.classList.remove('show');
+      }
+    }catch(_){}
     renderCal();
     setStatus(st,'ok','✅ 이벤트 '+evCnt+'건 로드됨');
     if(ast)setStatus(ast,'ok','✅ '+evCnt+'건 이벤트 불러옴 ('+new Date().toLocaleTimeString()+')');
