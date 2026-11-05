@@ -159,6 +159,11 @@ section{padding:72px 8%}
 .cal-banner-arr.open{transform:rotate(180deg)}
 .cal-banner-body{overflow:hidden;max-height:0;transition:max-height .25s ease}
 .cal-banner-body.open{max-height:300px}
+.cal-banner.has-img .cal-banner-body.open{max-height:1100px}
+.cal-banner-img{display:block;width:100%;max-width:420px;margin:10px auto 0;border-radius:10px}
+.cal-banner-cta{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.cal-banner-cta a{flex:1;min-width:120px;text-align:center;padding:10px 12px;border-radius:8px;font-size:12px;font-weight:700;text-decoration:none;background:#C8102E;color:#fff}
+.cal-banner-cta a.sec{background:rgba(255,255,255,.12)}
 .cal-banner-desc{font-size:12px;color:rgba(255,255,255,.5);line-height:1.7;padding-top:8px;border-top:1px solid rgba(255,255,255,.07);margin-top:8px;white-space:pre-line}
 .ev-dot{width:4px;height:4px;background:var(--gold);border-radius:50%;margin-top:2px}
 .evlist{margin-top:24px;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
@@ -1423,7 +1428,7 @@ function renderCal(){
     evArr.forEach(ev=>{
       if(ev.isPeriod){
         const key=ev.rangeStart||k;
-        if(!periodEvs[key]) periodEvs[key]={title:ev.title,desc:ev.desc,rangeStart:ev.rangeStart,rangeEnd:ev.rangeEnd};
+        if(!periodEvs[key]) periodEvs[key]={title:ev.title,desc:ev.desc,img:ev.img,rangeStart:ev.rangeStart,rangeEnd:ev.rangeEnd};
       } else {
         if(!spotDays[d]) spotDays[d]=[];
         const already=spotDays[d].find(e=>e.title===ev.title);
@@ -1439,16 +1444,21 @@ function renderCal(){
     bannerEl.innerHTML=pvs.map((e,i)=>{
       const s=e.rangeStart?e.rangeStart.split('-'):[], en=e.rangeEnd?e.rangeEnd.split('-'):[];
       const dateStr=s.length?parseInt(s[1])+'월 '+parseInt(s[2])+'일 ~ '+parseInt(en[1])+'월 '+parseInt(en[2])+'일':'';
-      return `<div class="cal-banner" onclick="toggleCalBanner(${i})">
+      const hasImg=!!e.img;
+      if(hasImg&&openCalBanners[i]===undefined) openCalBanners[i]=true;
+      const isOpen=!!openCalBanners[i];
+      return `<div class="cal-banner${hasImg?' has-img':''}" onclick="toggleCalBanner(${i})">
         <div class="cal-banner-row">
           <div>
             <div class="cal-banner-title">🎉 ${e.title}</div>
             ${dateStr?`<div class="cal-banner-date">${dateStr}</div>`:''}
           </div>
-          <div class="cal-banner-arr" id="cal-ba-${i}">▼</div>
+          <div class="cal-banner-arr${isOpen?' open':''}" id="cal-ba-${i}">▼</div>
         </div>
-        <div class="cal-banner-body" id="cal-bb-${i}">
+        <div class="cal-banner-body${isOpen?' open':''}" id="cal-bb-${i}">
+          ${hasImg?`<img class="cal-banner-img" src="${e.img}" alt="${e.title}" loading="lazy">`:''}
           ${e.desc?`<div class="cal-banner-desc">${e.desc}</div>`:''}
+          ${hasImg?`<div class="cal-banner-cta" onclick="event.stopPropagation()"><a href="#reservation" onclick="gtag('event','reservation_click',{event_category:'conversion',event_label:'event_banner'})">이 행사 상담 예약하기</a><a class="sec" href="tel:0647587722" onclick="gtag('event','phone_click',{event_category:'conversion',event_label:'event_banner'}); fbq('track','Contact');">📞 전화 문의</a></div>`:''}
         </div>
       </div>`;
     }).join('');
@@ -1560,21 +1570,29 @@ async function loadSheet(manual=false){
     const res=await fetch(url);
     if(!res.ok)throw new Error('HTTP '+res.status);
     const text=await res.text();
-    const rows=text.trim().split('\n').slice(1).filter(r=>r.trim());
+    // 따옴표 안 줄바꿈(셀 내 Enter)도 한 셀로 처리하는 CSV 파서
+    const parseCsv=(t)=>{
+      const out=[];let row=[],cur='',inQ=false;
+      for(let i=0;i<t.length;i++){
+        const c=t[i];
+        if(inQ){
+          if(c==='"'&&t[i+1]==='"'){cur+='"';i++;}
+          else if(c==='"'){inQ=false;}
+          else cur+=c;
+        }else if(c==='"'){inQ=true;}
+        else if(c===','){row.push(cur.trim());cur='';}
+        else if(c==='\n'||c==='\r'){
+          if(c==='\r'&&t[i+1]==='\n')i++;
+          row.push(cur.trim());out.push(row);row=[];cur='';
+        }else cur+=c;
+      }
+      row.push(cur.trim());out.push(row);
+      return out;
+    };
+    const rows=parseCsv(text.trim()).slice(1).filter(r=>r.some(x=>x));
     calEvs={};
 
-    rows.forEach(row=>{
-      const cols = [];
-      let cur = '', inQ = false;
-      for(let i=0;i<row.length;i++){
-        const c = row[i];
-        if(c==='"' && !inQ){ inQ=true; }
-        else if(c==='"' && inQ && row[i+1]==='"'){ cur+='"'; i++; }
-        else if(c==='"' && inQ){ inQ=false; }
-        else if(c===',' && !inQ){ cols.push(cur.trim()); cur=''; }
-        else { cur+=c; }
-      }
-      cols.push(cur.trim());
+    rows.forEach(cols=>{
       if(!cols[0]) return;
 
       // 기간 형식: 시작일, 종료일, 제목, 내용, 유형(기간/일회성)
@@ -1586,7 +1604,8 @@ async function loadSheet(manual=false){
         for(let d=new Date(start); d<=end; d.setDate(d.getDate()+1)){
           const key=d.toISOString().slice(0,10);
           if(!calEvs[key]) calEvs[key]=[];
-          calEvs[key].push({title, desc, isRange:true, rangeStart:cols[0], rangeEnd:cols[1], isPeriod});
+          const img=(cols[5]||'').trim();
+          calEvs[key].push({title, desc, img, isRange:true, rangeStart:cols[0], rangeEnd:cols[1], isPeriod});
         }
       }
       // 단일 날짜 형식
@@ -1597,7 +1616,7 @@ async function loadSheet(manual=false){
     });
 
     const cnt=Object.keys(calEvs).length;
-    const evCnt = rows.filter(r=>{const c=r.split(','); return c[0]&&c[0].replace(/"/g,'').trim().match(/^\d{4}/);}).length;
+    const evCnt = rows.filter(c=>c[0]&&/^\d{4}/.test(c[0])).length;
     renderCal();
     setStatus(st,'ok','✅ 이벤트 '+evCnt+'건 로드됨');
     if(ast)setStatus(ast,'ok','✅ '+evCnt+'건 이벤트 불러옴 ('+new Date().toLocaleTimeString()+')');
