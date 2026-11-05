@@ -418,6 +418,8 @@ footer{background:var(--black);padding:44px 8%;color:rgba(255,255,255,.4)}
 .news-card-title{font-size:14px;font-weight:700;color:var(--black);margin-bottom:6px;line-height:1.4}
 .news-card-date{font-size:11px;color:var(--g400);margin-bottom:10px}
 .news-card-desc{font-size:12px;color:var(--g700);line-height:1.6;margin-bottom:8px}
+.news-card-desc.clamp{max-height:132px;overflow:hidden;position:relative;-webkit-mask-image:linear-gradient(#000 70%,transparent);mask-image:linear-gradient(#000 70%,transparent)}
+.news-card-desc.clamp.open{max-height:none;-webkit-mask-image:none;mask-image:none}
 .news-card-desc-hidden{display:none;font-size:12px;color:var(--g700);line-height:1.6;margin-bottom:8px}
 .news-card-desc-hidden.open{display:block}
 .news-card-more{background:none;border:none;color:var(--red);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--sans);padding:4px 0;text-align:left;margin-bottom:8px}
@@ -1820,9 +1822,11 @@ function openNews(idx){
   document.getElementById('news-overlay').classList.add('open');
   document.getElementById('news-panel').classList.add('open');
   document.body.style.overflow='hidden';
+  if(newsData.length) renderNews();
   loadNewsSheet();
 }
 function closeNews(){
+  newsFocusIdx = null;
   document.getElementById('news-overlay').classList.remove('open');
   document.getElementById('news-panel').classList.remove('open');
   document.body.style.overflow='';
@@ -1929,9 +1933,12 @@ function nextSlide(e, cardIdx, total){
 function renderNews(){
   const grid = document.getElementById('news-grid');
   if(!newsData.length){ grid.innerHTML='<div class="news-empty">등록된 소식이 없습니다.</div>'; renderInlineNews(); return; }
-  grid.innerHTML = newsData.map((n, cardIdx)=>{
+  const featIdx = (newsFocusIdx !== null && newsData[newsFocusIdx]) ? newsFocusIdx : 0;
+  const order = [featIdx, ...newsData.map((_,i)=>i).filter(i=>i!==featIdx)];
+  grid.innerHTML = order.map((cardIdx)=>{
+    const n = newsData[cardIdx];
     const photos = (n.photo||'').split('|').filter(Boolean);
-    const isFirst = cardIdx === 0;
+    const isFirst = cardIdx === featIdx;
     const cta = `<a href="https://m.place.naver.com/place/1607379211/home" target="_blank" onclick="gtag('event','reservation_click',{event_category:'conversion',event_label:'news_card_naver'}); gtag_report_conversion(); fbq('track','Lead');" style="display:block;margin-top:auto;padding-top:12px;background:#03C75A;color:#fff;text-align:center;padding:10px;border-radius:8px;font-size:13px;font-weight:700;text-decoration:none">🎁 혜택 받으러 가기</a>`;
 
     if(isFirst){
@@ -1942,7 +1949,7 @@ function renderNews(){
         <div class="news-card-body">
           <div class="news-card-tag">${n.tag||'소식'}</div>
           <div class="news-card-title">${n.title}</div>
-          ${n.desc?`<div class="news-card-desc">${n.desc.replace(/\n/g,'<br>')}</div>`:''}
+          ${n.desc?`<div class="news-card-desc clamp" id="ndesc-${cardIdx}">${n.desc.replace(/\n/g,'<br>')}</div><button class="news-card-more" onclick="toggleNewsDesc(${cardIdx})">내용 더보기 ↓</button>`:''}
           <div class="news-card-date">${n.date}</div>
           ${cta}
         </div>
@@ -1973,20 +1980,15 @@ function renderNews(){
 // 홈 화면의 소식 카드를 눌렀을 때, 팝업 안에서 그 카드로 이동해 내용을 펼쳐 준다
 function focusNewsCard(){
   if(newsFocusIdx === null) return;
-  const idx = newsFocusIdx;
-  const el = document.getElementById('ncard-'+idx);
-  if(!el) return;
-  newsFocusIdx = null;
-  const desc = document.getElementById('ndesc-'+idx);
-  if(desc && !desc.classList.contains('open')) toggleNewsDesc(idx);
-  setTimeout(()=>{ el.scrollIntoView({block:'start',behavior:'smooth'}); }, 80);
+  const panel = document.getElementById('news-panel');
+  if(panel) panel.scrollTop = 0;
 }
 
 function toggleNewsDesc(i){
   const desc = document.getElementById('ndesc-'+i);
   const btn = desc.nextElementSibling;
   desc.classList.toggle('open');
-  btn.textContent = desc.classList.contains('open') ? '접기 ↑' : '내용 보기 ↓';
+  btn.textContent = desc.classList.contains('open') ? '접기 ↑' : (desc.classList.contains('clamp') ? '내용 더보기 ↓' : '내용 보기 ↓');
 }
 
 function renderInlineNews(){
