@@ -1814,7 +1814,9 @@ if(gallery){
 // ── 소식
 let newsData = [];
 
-function openNews(){
+let newsFocusIdx = null;
+function openNews(idx){
+  newsFocusIdx = (typeof idx === 'number') ? idx : null;
   document.getElementById('news-overlay').classList.add('open');
   document.getElementById('news-panel').classList.add('open');
   document.body.style.overflow='hidden';
@@ -1935,7 +1937,7 @@ function renderNews(){
     if(isFirst){
       // 첫 번째: 좌우 반반, 슬라이더 + 전체 내용
       const sliderHtml = makeSlider(photos, cardIdx);
-      return `<div class="news-card first">
+      return `<div class="news-card first" id="ncard-${cardIdx}">
         <div class="news-card-img-wrap">${sliderHtml}</div>
         <div class="news-card-body">
           <div class="news-card-tag">${n.tag||'소식'}</div>
@@ -1951,7 +1953,7 @@ function renderNews(){
       const imgHtml = firstImg
         ? `<div class="news-card-img-wrap-sm"><img src="${firstImg}" alt="소식" style="width:100%;height:100%;object-fit:cover"></div>`
         : `<div class="news-card-img-wrap-sm">📰</div>`;
-      return `<div class="news-card">
+      return `<div class="news-card" id="ncard-${cardIdx}">
         ${imgHtml}
         <div class="news-card-body">
           <div class="news-card-tag">${n.tag||'소식'}</div>
@@ -1965,6 +1967,19 @@ function renderNews(){
     }
   }).join('');
   renderInlineNews();
+  focusNewsCard();
+}
+
+// 홈 화면의 소식 카드를 눌렀을 때, 팝업 안에서 그 카드로 이동해 내용을 펼쳐 준다
+function focusNewsCard(){
+  if(newsFocusIdx === null) return;
+  const idx = newsFocusIdx;
+  const el = document.getElementById('ncard-'+idx);
+  if(!el) return;
+  newsFocusIdx = null;
+  const desc = document.getElementById('ndesc-'+idx);
+  if(desc && !desc.classList.contains('open')) toggleNewsDesc(idx);
+  setTimeout(()=>{ el.scrollIntoView({block:'start',behavior:'smooth'}); }, 80);
 }
 
 function toggleNewsDesc(i){
@@ -1988,7 +2003,7 @@ function renderInlineNews(){
     const thumbHtml = firstImg
       ? `<div class="inline-news-thumb"><img src="${firstImg}" alt="소식"></div>`
       : `<div class="inline-news-thumb">📰</div>`;
-    return `<div class="inline-news-card" onclick="openNews(); gtag('event','news_open',{event_category:'engagement',event_label:'inline_card'}); fbq('track','ViewContent');" style="cursor:pointer">
+    return `<div class="inline-news-card" onclick="openNews(${idx}); gtag('event','news_open',{event_category:'engagement',event_label:'inline_card'}); fbq('track','ViewContent');" style="cursor:pointer">
       ${thumbHtml}
       <div class="inline-news-body">
         <div class="inline-news-tag">${n.tag||'소식'}</div>
