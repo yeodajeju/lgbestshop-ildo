@@ -1,0 +1,36 @@
+name: 네이버 연령대별 검색 추이 기록
+
+on:
+  schedule:
+    - cron: "40 22 * * *"   # 매일 한국시간 07:40 (키워드 브리핑 07:50 전에)
+  workflow_dispatch:         # 수동 실행 버튼
+
+permissions:
+  contents: write
+
+concurrency:
+  group: site-data-push
+  cancel-in-progress: false
+
+jobs:
+  age-trend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install requests
+      - name: 연령대별 검색 추이 조회
+        env:
+          NAVER_CLIENT_ID: ${{ secrets.NAVER_CLIENT_ID }}
+          NAVER_CLIENT_SECRET: ${{ secrets.NAVER_CLIENT_SECRET }}
+        run: python tools/age_trend.py
+      - name: 결과 저장
+        run: |
+          git config user.name "age-trend-bot"
+          git config user.email "age-trend-bot@users.noreply.github.com"
+          git add data/age
+          git diff --cached --quiet || git commit -m "연령대별 검색 추이 기록 $(date -u +%F)"
+          git pull --rebase origin main
+          git push
