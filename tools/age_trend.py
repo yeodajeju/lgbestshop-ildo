@@ -33,7 +33,7 @@ DAYS = 90          # 조회 기간(일)
 BATCH = 5          # 한 번에 보낼 수 있는 주제어 수(최대 5)
 RECENT = 7         # '최근' 평균 일수
 BASE = 28          # 비교 기준 평균 일수
-MIN_BASE = 1.0     # 기준 평균이 이보다 작으면 '데이터 적음'
+MIN_LEVEL = 3.0    # 최근·직전 평균 중 하나라도 이보다 작으면 '데이터 적음'(0~100 상댓값 기준)
 
 OUT_DIR = "data/age"
 
@@ -157,7 +157,7 @@ def main():
         recent = seq[-RECENT:]
         base = seq[-(RECENT + BASE):-RECENT]
         r_avg, b_avg = mean(recent), mean(base)
-        if b_avg >= MIN_BASE:
+        if min(r_avg, b_avg) >= MIN_LEVEL:
             change = round((r_avg / b_avg - 1) * 100, 1)
             note = ""
         else:
