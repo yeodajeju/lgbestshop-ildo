@@ -1,6 +1,6 @@
 """네이버 검색어 트렌드(NAVER API HUB)로 연령대별 검색 추이를 기록한다.
 
-- 키워드 목록: tools/age_keywords.txt (한 줄에 한 묶음, 쉼표로 같은 뜻 표기를 묶을 수 있음)
+- 키워드 목록: tools/age_keywords.txt (한 줄에 한 묶음, 쉼표로 같은 뜻 표기를 묶을 수 있고, --- 줄로 조회 묶음을 나눔)
 - 결과: data/age/age_trend.csv (최근 90일 일별 상댓값), data/age/age_summary.csv (오늘 요약),
         data/age/age_summary_history.csv (요약 누적)
 - 키는 환경변수 NAVER_CLIENT_ID / NAVER_CLIENT_SECRET 로만 받는다(코드·로그에 남기지 않음).
@@ -38,16 +38,32 @@ MIN_BASE = 1.0     # 기준 평균이 이보다 작으면 '데이터 적음'
 OUT_DIR = "data/age"
 
 
-def load_groups(path="tools/age_keywords.txt"):
-    groups = []
+def load_batches(path="tools/age_keywords.txt"):
+    """키워드 파일을 조회 묶음(batch) 목록으로 읽는다.
+
+    한 번 조회 안에서는 가장 큰 값이 100이 되므로, 검색량이 크게 다른 키워드를
+    같이 넣으면 작은 쪽이 거의 0으로 눌려 버린다. 그래서 '---' 줄로 묶음을
+    나눌 수 있게 했다. 구분선이 없어도 한 묶음은 최대 BATCH(5)개까지만 담는다.
+    """
+    batches, cur = [], []
     with open(path, encoding="utf-8") as f:
         for line in f:
             line = line.strip()
+            if line == "---":
+                if cur:
+                    batches.append(cur)
+                    cur = []
+                continue
             if not line or line.startswith("#"):
                 continue
             words = [w.strip() for w in line.split(",") if w.strip()]
-            groups.append({"groupName": words[0], "keywords": words})
-    return groups
+            cur.append({"groupName": words[0], "keywords": words})
+            if len(cur) == BATCH:
+                batches.append(cur)
+                cur = []
+    if cur:
+        batches.append(cur)
+    return batches
 
 
 def post_with_retry(headers, body, tries=4):
@@ -98,8 +114,7 @@ def main():
     end = today - dt.timedelta(days=1)          # 오늘 값은 아직 덜 쌓여서 어제까지
     start = end - dt.timedelta(days=DAYS - 1)
     days = list(daterange(start, end))
-    groups = load_groups()
-    batches = [groups[i:i + BATCH] for i in range(0, len(groups), BATCH)]
+    batches = load_batches()
 
     series = {}   # (age, keyword) -> {date: ratio}
     failed = 0
