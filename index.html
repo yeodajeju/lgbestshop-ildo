@@ -1631,7 +1631,7 @@ async function loadSheet(manual=false){
           const key=d.toISOString().slice(0,10);
           if(!calEvs[key]) calEvs[key]=[];
           const img=(cols[5]||'').trim();
-          calEvs[key].push({title, desc, img, isRange:true, rangeStart:cols[0], rangeEnd:cols[1], isPeriod});
+          calEvs[key].push({title, desc, img, strip:(cols[6]||'').trim(), isRange:true, rangeStart:cols[0], rangeEnd:cols[1], isPeriod});
         }
       }
       // 단일 날짜 형식
@@ -1649,7 +1649,7 @@ async function loadSheet(manual=false){
       const hit=(calEvs[tk]||[]).find(e=>e.img);
       const strip=document.getElementById('top-strip');
       if(strip){
-        if(hit){strip.textContent='🎉 '+hit.title+' 진행 중 · 이벤트 보기 ›';strip.classList.add('show');}
+        if(hit){strip.textContent=hit.strip?hit.strip+' ›':'🎉 '+hit.title+' 진행 중 · 이벤트 보기 ›';strip.classList.add('show');}
         else strip.classList.remove('show');
       }
     }catch(_){}
