@@ -160,7 +160,10 @@ section{padding:72px 8%}
 .cal-banner-body{overflow:hidden;max-height:0;transition:max-height .25s ease}
 .cal-banner-body.open{max-height:300px}
 .cal-banner.has-img .cal-banner-body.open{max-height:1100px}
-.top-strip{display:none;margin-top:60px;background:#C8102E;color:#fff;text-align:center;font-size:13px;font-weight:700;padding:9px 12px;text-decoration:none;line-height:1.4}
+.top-strip{display:none;margin-top:60px;background:#C8102E;color:#fff;text-align:center;font-size:13px;font-weight:700;padding:9px 12px;text-decoration:none;line-height:1.4;white-space:nowrap;overflow:hidden}
+.top-strip.marq .ts-in{display:inline-block;padding-left:100%;animation:tsmarq 16s linear infinite}
+@keyframes tsmarq{from{transform:translateX(0)}to{transform:translateX(-100%)}}
+@media (prefers-reduced-motion:reduce){.top-strip.marq{text-overflow:ellipsis}.top-strip.marq .ts-in{animation:none;padding-left:0}}
 .top-strip.show{display:block}
 .top-strip.show + .hero, .top-strip.show ~ .hero{margin-top:0}
 .cal-banner-img{display:block;width:100%;max-width:420px;margin:10px auto 0;border-radius:10px}
@@ -1649,7 +1652,7 @@ async function loadSheet(manual=false){
       const hit=(calEvs[tk]||[]).find(e=>e.img);
       const strip=document.getElementById('top-strip');
       if(strip){
-        if(hit){strip.textContent=hit.strip?hit.strip+' ›':'🎉 '+hit.title+' 진행 중 · 이벤트 보기 ›';strip.classList.add('show');}
+        if(hit){const sp=document.createElement('span');sp.className='ts-in';sp.textContent=hit.strip?hit.strip+' ›':'🎉 '+hit.title+' 진행 중 · 이벤트 보기 ›';strip.textContent='';strip.classList.remove('marq');strip.appendChild(sp);strip.classList.add('show');requestAnimationFrame(()=>{if(sp.offsetWidth>strip.clientWidth-24)strip.classList.add('marq');});}
         else strip.classList.remove('show');
       }
     }catch(_){}
