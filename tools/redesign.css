@@ -288,3 +288,7 @@ footer{border-top:1px solid #333}
 .news-header h2{font-size:26px}
 @media(max-width:768px){.news-card-desc,.news-card-desc-hidden{font-size:17px}.news-card.first .news-card-title{font-size:23px}}
 .n-ei-cta button{padding:13px 20px;font-size:16px;font-weight:700;background:#fff;color:var(--ink);border:1px solid var(--ink);font-family:inherit;cursor:pointer}
+@keyframes nfade{from{opacity:0}to{opacity:1}}
+.n-slide:not([hidden]){animation:nfade .45s ease}
+@media(prefers-reduced-motion:reduce){.n-slide:not([hidden]){animation:none}}
+#n-store .n-slide{animation:none}

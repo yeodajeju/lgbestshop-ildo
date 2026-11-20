@@ -97,7 +97,40 @@ function nRenderHero(){
   if(pg) pg.style.display=list.length>1?'':'none';
   if(ps) ps.textContent='진행 중인 행사 '+(nHeroIdx+1)+' / '+list.length;
 }
-function nHeroGo(d){ if(!nHeroList.length) return; nHeroIdx=(nHeroIdx+d+nHeroList.length)%nHeroList.length; nRenderHero(); }
+function nHeroShow(){
+  var sl=document.querySelectorAll('#n-slides .n-slide');
+  for(var i=0;i<sl.length;i++){ if(i===nHeroIdx) sl[i].removeAttribute('hidden'); else sl[i].setAttribute('hidden',''); }
+  var ps=document.getElementById('n-pager-pos');
+  if(ps) ps.textContent='진행 중인 행사 '+(nHeroIdx+1)+' / '+nHeroList.length;
+}
+// 화살표를 누르면 넘어가고, 타이머도 처음부터 다시 센다
+function nHeroGo(d,auto){
+  if(nHeroList.length<2) return;
+  nHeroIdx=(nHeroIdx+d+nHeroList.length)%nHeroList.length; nHeroShow();
+  if(!auto) nHeroTimer();
+}
+// 자동 넘김: 4.5초마다. 마우스를 올리거나 손가락을 대고 있는 동안, 팝업·소식 창이 열려 있는 동안은 멈춘다
+var nHeroT=null, nHeroHold=false;
+function nHeroTimer(){
+  if(nHeroT) clearInterval(nHeroT);
+  if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  nHeroT=setInterval(function(){
+    if(nHeroHold||document.hidden) return;
+    var pop=document.getElementById('popup-overlay'), news=document.getElementById('news-panel');
+    if((pop&&pop.style.display!=='none'&&pop.style.display!=='')||(news&&news.classList.contains('open'))) return;
+    nHeroGo(1,true);
+  },4500);
+}
+(function(){
+  var w=document.getElementById('n-evwrap'); if(!w) return;
+  w.addEventListener('mouseenter',function(){nHeroHold=true;});
+  w.addEventListener('mouseleave',function(){nHeroHold=false;});
+  w.addEventListener('touchstart',function(){nHeroHold=true;},{passive:true});
+  w.addEventListener('touchend',function(){setTimeout(function(){nHeroHold=false;},2500);},{passive:true});
+  w.addEventListener('focusin',function(){nHeroHold=true;});
+  w.addEventListener('focusout',function(){nHeroHold=false;});
+  nHeroTimer();
+})();
 function nFindNews(ev){
   if(typeof newsData==='undefined'||!newsData.length) return -1;
   for(var i=0;i<newsData.length;i++){ if(ev.img&&(newsData[i].photo||'').indexOf(ev.img)>=0) return i; }
