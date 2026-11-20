@@ -2452,12 +2452,16 @@ function isNewsEntry(){
   }catch(e){return false;}
 }
 
+function afterPopups(){
+  // 카카오 유입: 팝업이 모두 끝난 뒤(또는 띄울 팝업이 없을 때) 소식 창 열기
+  if(isNewsEntry() && !window._newsAutoDone){ window._newsAutoDone=true; setTimeout(()=>openNews(),300); }
+}
+
 function initPopup(){
-  if(isNewsEntry()) return; // 카카오 유입은 소식 바로 열기 (팝업 생략)
-  if(popupData.active.toLowerCase().trim() !== 'on') return;
+  if(popupData.active.toLowerCase().trim() !== 'on'){ afterPopups(); return; }
   const today = new Date().toDateString();
   const closed = sessionStorage.getItem('ildo_popup_closed');
-  if(closed === today) return;
+  if(closed === today){ afterPopups(); return; }
   if(popupQueue.length){ setTimeout(()=>showQueuePopup(0), 800); return; }
   document.getElementById('popup-title').innerHTML = (popupData.title||'').replace(/\n/g,'<br>');
   document.getElementById('popup-desc').innerHTML = (popupData.desc||'').replace(/\n/g,'<br>');
@@ -2506,9 +2510,10 @@ function showQueuePopup(i){
 function closePopupNext(){
   closePopup();
   if(popupIdx+1 < popupQueue.length) setTimeout(()=>showQueuePopup(popupIdx+1), 250);
+  else afterPopups();
 }
 function closePopup(){ document.getElementById('popup-overlay').style.display='none'; }
-function closePopupToday(){ sessionStorage.setItem('ildo_popup_closed', new Date().toDateString()); closePopup(); }
+function closePopupToday(){ sessionStorage.setItem('ildo_popup_closed', new Date().toDateString()); closePopup(); afterPopups(); }
 
 function savePopup(){
   alert('⚠️ 팝업은 구글 시트 [팝업] 탭에서 수정하세요!\n\n시트 주소: https://docs.google.com/spreadsheets/d/1J5hu3hDcTIz06vqbekt9tCxIqdXugyODjTWuDaTDxvo/edit');
@@ -2625,9 +2630,13 @@ setTimeout(()=>{ if(!newsData.length) loadNewsSheet().catch(()=>{}); }, 3000);
 setTimeout(()=>{ if(!newsData.length) loadNewsSheet().catch(()=>{}); }, 6000);
 </script>
 <script>
-// 카카오채널 등에서 ?open=news 또는 ?utm_source=kakao 로 들어오면 소식 창을 바로 연다
+// 카카오채널 등에서 ?open=news 또는 ?utm_source=kakao 로 들어오면 팝업 이후 소식 창을 연다
 window.addEventListener('load',function(){
-  if(isNewsEntry()) setTimeout(function(){ openNews(); },500);
+  // 팝업 시트 로드 실패 등으로 팝업 흐름이 시작되지 않은 경우의 안전장치
+  if(isNewsEntry()) setTimeout(function(){
+    var ov=document.getElementById('popup-overlay');
+    if(!window._newsAutoDone && (!ov || getComputedStyle(ov).display==='none')) afterPopups();
+  },5000);
 });
 </script>
 </body>
