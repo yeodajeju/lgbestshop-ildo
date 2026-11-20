@@ -773,6 +773,7 @@ footer{border-top:1px solid #333}
 .news-card-body>a[style]{font-size:18px!important;padding:16px!important}
 .news-header h2{font-size:26px}
 @media(max-width:768px){.news-card-desc,.news-card-desc-hidden{font-size:17px}.news-card.first .news-card-title{font-size:23px}}
+.n-ei-cta button{padding:13px 20px;font-size:16px;font-weight:700;background:#fff;color:var(--ink);border:1px solid var(--ink);font-family:inherit;cursor:pointer}
 
 </style>
 <!-- Meta Pixel Code -->
@@ -2958,7 +2959,7 @@ function renderCal(){
       <div class="n-ei-body">
         ${ev.img?`<img src="${nEsc(ev.img)}" alt="${nEsc(ev.title)}" loading="lazy">`:''}
         ${ev.desc?`<div class="n-ei-desc">${nEsc(ev.desc).replace(/\n/g,'<br>')}</div>`:''}
-        <div class="n-ei-cta"><a href="#reservation" onclick="gtag('event','reservation_click',{event_category:'conversion',event_label:'event_banner'})">이 행사 상담 예약하기</a><a class="sec" href="tel:0647587722" onclick="gtag('event','phone_click',{event_category:'conversion',event_label:'event_banner'}); fbq('track','Contact');">전화 문의</a></div>
+        <div class="n-ei-cta">${nFindNews(ev)>=0?`<button type="button" class="sec" onclick="nEvNews(${i})">소식에서 자세히 보기</button>`:''}<a href="#reservation" onclick="gtag('event','reservation_click',{event_category:'conversion',event_label:'event_banner'})">이 행사 상담 예약하기</a><a class="sec" href="tel:0647587722" onclick="gtag('event','phone_click',{event_category:'conversion',event_label:'event_banner'}); fbq('track','Contact');">전화 문의</a></div>
       </div>
     </div>`;
   }).join(''):'<p class="n-ev-empty">이 날은 등록된 행사가 없습니다.</p>';
@@ -2994,13 +2995,28 @@ function nRenderHero(){
   if(ps) ps.textContent='진행 중인 행사 '+(nHeroIdx+1)+' / '+list.length;
 }
 function nHeroGo(d){ if(!nHeroList.length) return; nHeroIdx=(nHeroIdx+d+nHeroList.length)%nHeroList.length; nRenderHero(); }
-function nHeroDetail(i){
-  var it=nHeroList[i]; if(!it) return;
+function nFindNews(ev){
+  if(typeof newsData==='undefined'||!newsData.length) return -1;
+  for(var i=0;i<newsData.length;i++){ if(ev.img&&(newsData[i].photo||'').indexOf(ev.img)>=0) return i; }
+  var t=(ev.title||'').replace(/\s/g,'');
+  for(var j=0;j<newsData.length;j++){ var nt=(newsData[j].title||'').replace(/\s/g,''); if(t&&(nt.indexOf(t)>=0||t.indexOf(nt)>=0)) return j; }
+  return -1;
+}
+function nShowInCal(it){
   var t=new Date(); curY=t.getFullYear(); curM=t.getMonth(); window._nMonth=curY+'-'+curM; selectedDay=t.getDate();
   nOpenEv[it.id]=true; renderCal();
   var sec=document.getElementById('events'); if(sec) sec.scrollIntoView({behavior:'smooth'});
-  if(window.gtag) gtag('event','hero_event_click',{event_category:'engagement',event_label:it.ev.title});
 }
+// 첫 화면 "행사 자세히 보기": 같은 행사의 소식 글이 있으면 소식 창으로, 없으면 달력으로
+async function nOpenEvNews(ev, it, label){
+  if(typeof newsData!=='undefined'&&!newsData.length){ try{ await loadNewsSheet(); }catch(e){} }
+  var idx=nFindNews(ev);
+  if(window.gtag) gtag('event',label,{event_category:'engagement',event_label:ev.title});
+  if(idx>=0){ openNews(idx); if(window.fbq) fbq('track','ViewContent'); }
+  else if(it) nShowInCal(it);
+}
+function nHeroDetail(i){ var it=nHeroList[i]; if(it) nOpenEvNews(it.ev,it,'hero_event_click'); }
+function nEvNews(i){ var it=window._nEvItems&&window._nEvItems[i]; if(it) nOpenEvNews(it.ev,null,'event_news_click'); }
 try{ renderCal(); }catch(e){}
 // 팝업: 이전으로 돌아가기
 function closePopupPrev(){ if(popupIdx>0) showQueuePopup(popupIdx-1); }
