@@ -3014,11 +3014,10 @@ function nHeroGo(d,auto){
   nHeroIdx=(nHeroIdx+d+nHeroList.length)%nHeroList.length; nHeroShow();
   if(!auto) nHeroTimer();
 }
-// 자동 넘김: 4.5초마다. 마우스를 올리거나 손가락을 대고 있는 동안, 팝업·소식 창이 열려 있는 동안은 멈춘다
+// 자동 넘김: 4.5초마다. 손가락을 대고 있는 동안, 팝업·소식 창이 열려 있는 동안은 멈춘다
 var nHeroT=null, nHeroHold=false;
 function nHeroTimer(){
   if(nHeroT) clearInterval(nHeroT);
-  if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   nHeroT=setInterval(function(){
     if(nHeroHold||document.hidden) return;
     var pop=document.getElementById('popup-overlay'), news=document.getElementById('news-panel');
@@ -3028,12 +3027,8 @@ function nHeroTimer(){
 }
 (function(){
   var w=document.getElementById('n-evwrap'); if(!w) return;
-  w.addEventListener('mouseenter',function(){nHeroHold=true;});
-  w.addEventListener('mouseleave',function(){nHeroHold=false;});
   w.addEventListener('touchstart',function(){nHeroHold=true;},{passive:true});
   w.addEventListener('touchend',function(){setTimeout(function(){nHeroHold=false;},2500);},{passive:true});
-  w.addEventListener('focusin',function(){nHeroHold=true;});
-  w.addEventListener('focusout',function(){nHeroHold=false;});
   nHeroTimer();
 })();
 function nFindNews(ev){
