@@ -131,3 +131,8 @@ function closePopupPrev(){ if(popupIdx>0) showQueuePopup(popupIdx-1); }
     if(pb) pb.style.display=(popupQueue.length>1&&popupIdx>0)?'':'none';
   };
 })();
+// 소식이 불러와지면 달력 목록의 "소식에서 자세히 보기" 버튼이 나타나도록 다시 그린다
+(function(){
+  var orig=renderInlineNews;
+  renderInlineNews=function(){ orig(); try{ renderCal(); }catch(e){} };
+})();
