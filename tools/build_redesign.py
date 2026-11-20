@@ -208,7 +208,7 @@ rep('<div class="slabel fi">Know-how</div>', '<div class="slabel fi">Story</div>
 rep('<h2 class="stitle fi">가전 <span>꿀팁</span></h2>', '<h2 class="stitle fi">일도점 <span>이야기</span></h2>')
 rep('<li><a href="#tips">가전 꿀팁</a></li>', '<li><a href="#tips">일도점 이야기</a></li>')
 # ── 팝업: 이전 버튼
-rep('<button class="popup-close-btn" id="popup-close-btn"', '<button class="popup-close-btn popup-prev-btn" id="popup-prev-btn" onclick="closePopupPrev()" style="display:none">◂ 이전</button>\n      <button class="popup-close-btn" id="popup-close-btn"')
+rep('<button class="popup-close-btn" id="popup-close-btn" onclick="closePopupNext()">', '<button class="popup-close-btn popup-prev-btn" id="popup-prev-btn" onclick="closePopupPrev()" style="display:none">◂ 이전</button>\n      <button class="popup-close-btn popup-next-btn" id="popup-next-btn" onclick="nPopupNext()" style="display:none">다음 ▸</button>\n      <button class="popup-close-btn" id="popup-close-btn" onclick="nPopupClose()">')
 
 # ── 이벤트 시트: H열(첫 화면 한 줄) 읽기 + 렌더 연결
 rep("strip:(cols[6]||'').trim(),", "strip:(cols[6]||'').trim(), hl:(cols[7]||'').trim(),")

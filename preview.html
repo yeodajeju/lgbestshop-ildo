@@ -795,6 +795,12 @@ footer{border-top:1px solid #333}
 .n-visit-map .root_daum_roughmap .wrap_controllers{box-sizing:border-box}
 @media(max-width:768px){.n-visit-map .root_daum_roughmap .wrap_map{height:280px!important}}
 .n-visit-map .root_daum_roughmap .cont{display:none!important}
+/* 팝업 아래 버튼: 윗줄 이전·다음, 아랫줄 오늘 하루 보지 않기·닫기 */
+.popup-footer{flex-wrap:wrap}
+.popup-prev-btn,.popup-next-btn{order:1;flex:1 1 40%;border-bottom:1px solid #E6E6E6!important;font-weight:700}
+.popup-next-btn{border-right:0!important}
+.popup-today{order:2;flex:1 1 40%}
+#popup-close-btn{order:3;flex:1 1 40%}
 
 </style>
 <!-- Meta Pixel Code -->
@@ -1574,7 +1580,8 @@ function gtag_report_conversion(url) {
     <div class="popup-footer">
       <button class="popup-today" onclick="closePopupToday()">오늘 하루 보지 않기</button>
       <button class="popup-close-btn popup-prev-btn" id="popup-prev-btn" onclick="closePopupPrev()" style="display:none">◂ 이전</button>
-      <button class="popup-close-btn" id="popup-close-btn" onclick="closePopupNext()">닫기 ✕</button>
+      <button class="popup-close-btn popup-next-btn" id="popup-next-btn" onclick="nPopupNext()" style="display:none">다음 ▸</button>
+      <button class="popup-close-btn" id="popup-close-btn" onclick="nPopupClose()">닫기 ✕</button>
     </div>
   </div>
 </div>
@@ -3090,14 +3097,18 @@ async function nOpenEvNews(ev, it, label){
 function nHeroDetail(i){ var it=nHeroList[i]; if(it) nOpenEvNews(it.ev,it,'hero_event_click'); }
 function nEvNews(i){ var it=window._nEvItems&&window._nEvItems[i]; if(it) nOpenEvNews(it.ev,null,'event_news_click'); }
 try{ renderCal(); }catch(e){}
-// 팝업: 이전으로 돌아가기
+// 팝업: 이전·다음·닫기를 따로 고를 수 있게
 function closePopupPrev(){ if(popupIdx>0) showQueuePopup(popupIdx-1); }
+function nPopupNext(){ if(popupIdx+1<popupQueue.length) showQueuePopup(popupIdx+1); }
+function nPopupClose(){ closePopup(); afterPopups(); }
 (function(){
   var orig=showQueuePopup;
   showQueuePopup=function(i){
     orig(i);
-    var pb=document.getElementById('popup-prev-btn');
-    if(pb) pb.style.display=(popupQueue.length>1&&popupIdx>0)?'':'none';
+    var n=popupQueue.length, pb=document.getElementById('popup-prev-btn'), nb=document.getElementById('popup-next-btn'), cb=document.getElementById('popup-close-btn');
+    if(pb) pb.style.display=(n>1&&popupIdx>0)?'':'none';
+    if(nb){ nb.style.display=(popupIdx+1<n)?'':'none'; nb.textContent='다음 ('+(popupIdx+1)+'/'+n+') ▸'; }
+    if(cb) cb.textContent='닫기 ✕';
   };
 })();
 // 소식이 불러와지면 달력 목록의 "소식에서 자세히 보기" 버튼이 나타나도록 다시 그린다

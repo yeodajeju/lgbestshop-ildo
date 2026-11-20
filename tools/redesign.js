@@ -161,14 +161,18 @@ async function nOpenEvNews(ev, it, label){
 function nHeroDetail(i){ var it=nHeroList[i]; if(it) nOpenEvNews(it.ev,it,'hero_event_click'); }
 function nEvNews(i){ var it=window._nEvItems&&window._nEvItems[i]; if(it) nOpenEvNews(it.ev,null,'event_news_click'); }
 try{ renderCal(); }catch(e){}
-// 팝업: 이전으로 돌아가기
+// 팝업: 이전·다음·닫기를 따로 고를 수 있게
 function closePopupPrev(){ if(popupIdx>0) showQueuePopup(popupIdx-1); }
+function nPopupNext(){ if(popupIdx+1<popupQueue.length) showQueuePopup(popupIdx+1); }
+function nPopupClose(){ closePopup(); afterPopups(); }
 (function(){
   var orig=showQueuePopup;
   showQueuePopup=function(i){
     orig(i);
-    var pb=document.getElementById('popup-prev-btn');
-    if(pb) pb.style.display=(popupQueue.length>1&&popupIdx>0)?'':'none';
+    var n=popupQueue.length, pb=document.getElementById('popup-prev-btn'), nb=document.getElementById('popup-next-btn'), cb=document.getElementById('popup-close-btn');
+    if(pb) pb.style.display=(n>1&&popupIdx>0)?'':'none';
+    if(nb){ nb.style.display=(popupIdx+1<n)?'':'none'; nb.textContent='다음 ('+(popupIdx+1)+'/'+n+') ▸'; }
+    if(cb) cb.textContent='닫기 ✕';
   };
 })();
 // 소식이 불러와지면 달력 목록의 "소식에서 자세히 보기" 버튼이 나타나도록 다시 그린다

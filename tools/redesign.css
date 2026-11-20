@@ -309,3 +309,9 @@ footer{border-top:1px solid #333}
 .n-visit-map .root_daum_roughmap .wrap_controllers{box-sizing:border-box}
 @media(max-width:768px){.n-visit-map .root_daum_roughmap .wrap_map{height:280px!important}}
 .n-visit-map .root_daum_roughmap .cont{display:none!important}
+/* 팝업 아래 버튼: 윗줄 이전·다음, 아랫줄 오늘 하루 보지 않기·닫기 */
+.popup-footer{flex-wrap:wrap}
+.popup-prev-btn,.popup-next-btn{order:1;flex:1 1 40%;border-bottom:1px solid #E6E6E6!important;font-weight:700}
+.popup-next-btn{border-right:0!important}
+.popup-today{order:2;flex:1 1 40%}
+#popup-close-btn{order:3;flex:1 1 40%}
