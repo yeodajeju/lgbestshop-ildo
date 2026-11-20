@@ -143,12 +143,18 @@ NEW_ABOUT = f'''<section class="n-sec n-about" id="about">
 cta = s[c_i:c_j]
 cta = cta.replace('📞 064-758-7722 전화하기', '064-758-7722 전화하기').replace('📅 공식홈페이지 예약', '공식홈페이지 예약').replace('🗺️ 네이버플레이스 예약', '네이버플레이스 예약')
 cta = cta.replace('</section>', '''  <div class="n-visit" id="visit">
-    <div class="n-visit-t">오시는 길</div>
-    <div>제주시 동광로 157 · 064-758-7722</div>
-    <div>월~금 10:30–20:30 · 토 10:30–20:00 · 일 11:00–20:00 · 명절 전날·당일 휴무</div>
-    <div class="n-visit-maps">
-      <a href="https://m.place.naver.com/place/1607379211/home" target="_blank" rel="noopener">네이버지도</a>
-      <a href="https://map.kakao.com/link/search/LG전자베스트샵일도점" target="_blank" rel="noopener">카카오맵</a>
+    <div class="n-visit-info">
+      <div class="n-visit-t">오시는 길</div>
+      <div>제주시 동광로 157 · 064-758-7722</div>
+      <div>월~금 10:30–20:30 · 토 10:30–20:00 · 일 11:00–20:00 · 명절 전날·당일 휴무</div>
+      <div class="n-visit-maps">
+        <a href="https://map.kakao.com/link/search/LG전자베스트샵일도점" target="_blank" rel="noopener" onclick="gtag('event','map_click',{event_category:'engagement',event_label:'kakao'})">카카오맵</a>
+        <a href="https://m.place.naver.com/place/1607379211/home" target="_blank" rel="noopener" onclick="gtag('event','map_click',{event_category:'engagement',event_label:'naver'})">네이버지도</a>
+        <a href="https://www.google.com/maps/search/?api=1&amp;query=LG%EC%A0%84%EC%9E%90+%EB%B2%A0%EC%8A%A4%ED%8A%B8%EC%83%B5+%EC%9D%BC%EB%8F%84%EC%A0%90+%EC%A0%9C%EC%A3%BC%EC%8B%9C+%EB%8F%99%EA%B4%91%EB%A1%9C+157" target="_blank" rel="noopener" onclick="gtag('event','map_click',{event_category:'engagement',event_label:'google'})">구글지도</a>
+      </div>
+    </div>
+    <div class="n-visit-map">
+      <iframe title="LG전자 베스트샵 일도점 위치 지도" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://www.google.com/maps?q=%EC%A0%9C%EC%A3%BC%ED%8A%B9%EB%B3%84%EC%9E%90%EC%B9%98%EB%8F%84+%EC%A0%9C%EC%A3%BC%EC%8B%9C+%EB%8F%99%EA%B4%91%EB%A1%9C+157&amp;z=16&amp;hl=ko&amp;output=embed"></iframe>
     </div>
   </div>
 </section>''')

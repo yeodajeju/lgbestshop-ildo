@@ -297,3 +297,9 @@ footer{border-top:1px solid #333}
 /* 제목이 어색한 자리에서 끊기지 않게: 줄 길이를 고르게 나눈다 */
 .n-title,.n-slide-title,.n-slide-sub,.n-ei-t,.n-h2,.stitle,.rtitle,.ttitle,.news-card-title,.popup-title,.cta-t,.mname,.btitle{text-wrap:balance;word-break:keep-all}
 .n-desc,.n-store-sub,.n-lead,.rbody,.mdesc,.bdesc,.cta-d{text-wrap:pretty}
+.n-visit{flex-direction:row;flex-wrap:wrap;gap:28px 5%;align-items:flex-start}
+.n-visit-info{flex:1 1 320px;min-width:0;display:flex;flex-direction:column;gap:8px}
+.n-visit-maps{flex-wrap:wrap}
+.n-visit-map{flex:1.4 1 420px;min-width:0}
+.n-visit-map iframe{display:block;width:100%;height:340px;border:0;background:#222}
+@media(max-width:768px){.n-visit-map iframe{height:280px}}
