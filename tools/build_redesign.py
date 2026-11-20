@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""index.html(현재 사이트)에 새 디자인을 입혀 preview.html 을 만든다.
+"""[2026-11-20 적용 완료 — 기록용] 예전 index.html 에 새 디자인을 입히는 데 쓴 일회성 스크립트.
+이제 index.html 이 새 디자인이므로 다시 실행할 필요가 없고, 수정은 index.html 에 직접 한다.
 사용: python3 tools/build_redesign.py [출력파일=preview.html]
 기존 기능(시트 연동·추적 코드·상담 폼·관리자 패널·블로그/인스타 자동 갱신 구간)은 그대로 두고
 구조·스타일·달력/첫 화면 렌더링만 바꾼다."""
@@ -221,7 +222,6 @@ s = s.replace('<link rel="preconnect" href="https://fonts.googleapis.com">', '<l
 css = (ROOT / 'tools' / 'redesign.css').read_text(encoding='utf-8')
 js = (ROOT / 'tools' / 'redesign.js').read_text(encoding='utf-8')
 if PREVIEW:
-    js += '\n' + (ROOT / 'tools' / 'redesign_preview_extra.js').read_text(encoding='utf-8')
     s = s.replace('<meta name="description"', '<meta name="robots" content="noindex,nofollow">\n<meta name="description"', 1)
 i = s.index('</style>')
 s = s[:i] + '\n/* ===== REDESIGN ===== */\n' + css + '\n' + s[i:]
