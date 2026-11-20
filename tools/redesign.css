@@ -308,3 +308,4 @@ footer{border-top:1px solid #333}
 .n-visit-map .root_daum_roughmap .wrap_map{height:340px!important}
 .n-visit-map .root_daum_roughmap .wrap_controllers{box-sizing:border-box}
 @media(max-width:768px){.n-visit-map .root_daum_roughmap .wrap_map{height:280px!important}}
+.n-visit-map .root_daum_roughmap .cont{display:none!important}
