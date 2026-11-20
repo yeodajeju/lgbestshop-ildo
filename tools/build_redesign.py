@@ -154,7 +154,12 @@ cta = cta.replace('</section>', '''  <div class="n-visit" id="visit">
       </div>
     </div>
     <div class="n-visit-map">
-      <iframe title="LG전자 베스트샵 일도점 위치 지도" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://www.google.com/maps?q=%EC%A0%9C%EC%A3%BC%ED%8A%B9%EB%B3%84%EC%9E%90%EC%B9%98%EB%8F%84+%EC%A0%9C%EC%A3%BC%EC%8B%9C+%EB%8F%99%EA%B4%91%EB%A1%9C+157&amp;z=16&amp;hl=ko&amp;output=embed"></iframe>
+      <!-- 카카오맵 지도 퍼가기 -->
+      <div id="daumRoughmapContainer1795168525411" class="root_daum_roughmap root_daum_roughmap_landing"></div>
+      <script charset="UTF-8" class="daum_roughmap_loader_script" src="https://t1.kakaocdn.net/kakaomapweb/roughmap/loader/prod/roughmapLoader.js"></script>
+      <script charset="UTF-8">
+        try{ new daum.roughmap.Lander({"timestamp":"1795168525411","key":"5cnw24vaayt","mapWidth":"640","mapHeight":"340"}).render(); }catch(e){}
+      </script>
     </div>
   </div>
 </section>''')
