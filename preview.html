@@ -760,6 +760,19 @@ footer{border-top:1px solid #333}
 @media(min-width:1000px){.n-sec{display:grid;grid-template-columns:minmax(220px,1fr) minmax(0,3.2fr);column-gap:5%}}
 .nav-logo{min-width:0}
 @media(max-width:520px){.nav-logo img:first-of-type{height:20px!important}.nav-logo img:last-of-type{height:16px!important}}
+.popup-prev-btn{border-right:1px solid #E6E6E6!important;font-weight:600}
+/* 소식 글씨 키움 */
+.news-panel{width:min(620px,100%)}
+.news-card-tag{font-size:15px}
+.news-card-title{font-size:21px}
+.news-card.first .news-card-title{font-size:26px;line-height:1.4}
+.news-card-date{font-size:16px}
+.news-card-desc,.news-card-desc-hidden{font-size:18px;line-height:1.75;color:#222}
+.news-card-desc.clamp{max-height:260px}
+.news-card-more{font-size:17px}
+.news-card-body>a[style]{font-size:18px!important;padding:16px!important}
+.news-header h2{font-size:26px}
+@media(max-width:768px){.news-card-desc,.news-card-desc-hidden{font-size:17px}.news-card.first .news-card-title{font-size:23px}}
 
 </style>
 <!-- Meta Pixel Code -->
@@ -833,7 +846,7 @@ function gtag_report_conversion(url) {
   <a href="#managers" onclick="closeMob()">매니저</a>
   <a href="#about" onclick="closeMob()">매장 소개</a>
   <a href="#benefits" onclick="closeMob()">구매 혜택</a>
-  <a href="#tips" onclick="closeMob()">가전 꿀팁</a>
+  <a href="#tips" onclick="closeMob()">일도점 이야기</a>
   <a href="#media" onclick="closeMob()">미디어</a>
   <a href="#visit" onclick="closeMob()">오시는 길</a>
   <a href="tel:0647587722" class="mob-cta" onclick="gtag('event','phone_click',{event_category:'conversion',event_label:'mob_menu'}); fbq('track','Contact');">064-758-7722 전화상담</a>
@@ -1186,8 +1199,8 @@ function gtag_report_conversion(url) {
   </div>
 </section>
 <section class="tips" id="tips">
-  <div class="slabel fi">Know-how</div>
-  <h2 class="stitle fi">가전 <span>꿀팁</span></h2>
+  <div class="slabel fi">Story</div>
+  <h2 class="stitle fi">일도점 <span>이야기</span></h2>
   <div class="tgrid" id="tips-grid">
     <!-- BLOG-POSTS:START (자동 갱신 구간: tools/blog_sync.py 가 네이버 블로그 RSS로 채웁니다) -->
     <a class="tcard fi" href="https://blog.naver.com/lg_bestshop_ildo/224483642505" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">
@@ -1488,7 +1501,7 @@ function gtag_report_conversion(url) {
     <ul class="flinks">
       <li><a href="#about">매장 소개</a></li><li><a href="#managers">매니저 소개</a></li>
       <li><a href="#events">이달의 이벤트</a></li><li><a href="#reviews">고객 후기</a></li>
-      <li><a href="#tips">가전 꿀팁</a></li><li><a href="#benefits">구매 혜택</a></li>
+      <li><a href="#tips">일도점 이야기</a></li><li><a href="#benefits">구매 혜택</a></li>
     </ul>
   </div>
   <div class="fcopy">© 2026 LG전자 베스트샵 일도점.</div>
@@ -1527,6 +1540,7 @@ function gtag_report_conversion(url) {
     </div>
     <div class="popup-footer">
       <button class="popup-today" onclick="closePopupToday()">오늘 하루 보지 않기</button>
+      <button class="popup-close-btn popup-prev-btn" id="popup-prev-btn" onclick="closePopupPrev()" style="display:none">◂ 이전</button>
       <button class="popup-close-btn" id="popup-close-btn" onclick="closePopupNext()">닫기 ✕</button>
     </div>
   </div>
@@ -2988,6 +3002,16 @@ function nHeroDetail(i){
   if(window.gtag) gtag('event','hero_event_click',{event_category:'engagement',event_label:it.ev.title});
 }
 try{ renderCal(); }catch(e){}
+// 팝업: 이전으로 돌아가기
+function closePopupPrev(){ if(popupIdx>0) showQueuePopup(popupIdx-1); }
+(function(){
+  var orig=showQueuePopup;
+  showQueuePopup=function(i){
+    orig(i);
+    var pb=document.getElementById('popup-prev-btn');
+    if(pb) pb.style.display=(popupQueue.length>1&&popupIdx>0)?'':'none';
+  };
+})();
 
 // 미리보기 전용: 소식 시트에만 있고 이벤트 시트에는 아직 없는 11월 행사 (반영 시 이벤트 시트로 옮기고 이 파일은 빼요)
 function nAddExtra(){

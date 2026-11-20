@@ -106,3 +106,13 @@ function nHeroDetail(i){
   if(window.gtag) gtag('event','hero_event_click',{event_category:'engagement',event_label:it.ev.title});
 }
 try{ renderCal(); }catch(e){}
+// 팝업: 이전으로 돌아가기
+function closePopupPrev(){ if(popupIdx>0) showQueuePopup(popupIdx-1); }
+(function(){
+  var orig=showQueuePopup;
+  showQueuePopup=function(i){
+    orig(i);
+    var pb=document.getElementById('popup-prev-btn');
+    if(pb) pb.style.display=(popupQueue.length>1&&popupIdx>0)?'':'none';
+  };
+})();

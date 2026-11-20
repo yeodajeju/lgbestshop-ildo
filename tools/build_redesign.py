@@ -180,7 +180,7 @@ s = s[:i] + f'''<div class="mob-menu" id="mob-menu">
   <a href="#managers" onclick="closeMob()">매니저</a>
   <a href="#about" onclick="closeMob()">매장 소개</a>
   <a href="#benefits" onclick="closeMob()">구매 혜택</a>
-  <a href="#tips" onclick="closeMob()">가전 꿀팁</a>
+  <a href="#tips" onclick="closeMob()">일도점 이야기</a>
   <a href="#media" onclick="closeMob()">미디어</a>
   <a href="#visit" onclick="closeMob()">오시는 길</a>
   <a href="tel:0647587722" class="mob-cta" onclick="{TEL % 'mob_menu'}">064-758-7722 전화상담</a>
@@ -191,6 +191,13 @@ s = s[:i] + f'''<div class="mob-menu" id="mob-menu">
 for a, b in [('<h2>📰 일도점 소식</h2>', '<h2>일도점 소식</h2>'), ('🔄 새로고침</button>\n        <button class="news-close"', '새로고침</button>\n        <button class="news-close"'),
              ('🎁 혜택 받으러 가기', '혜택 받으러 가기'), ('<br>📞 064-758-7722<br>', '<br>064-758-7722<br>')]:
     if a in s: s = s.replace(a, b)
+
+# ── 가전 꿀팁 → 일도점 이야기
+rep('<div class="slabel fi">Know-how</div>', '<div class="slabel fi">Story</div>')
+rep('<h2 class="stitle fi">가전 <span>꿀팁</span></h2>', '<h2 class="stitle fi">일도점 <span>이야기</span></h2>')
+rep('<li><a href="#tips">가전 꿀팁</a></li>', '<li><a href="#tips">일도점 이야기</a></li>')
+# ── 팝업: 이전 버튼
+rep('<button class="popup-close-btn" id="popup-close-btn"', '<button class="popup-close-btn popup-prev-btn" id="popup-prev-btn" onclick="closePopupPrev()" style="display:none">◂ 이전</button>\n      <button class="popup-close-btn" id="popup-close-btn"')
 
 # ── 이벤트 시트: H열(첫 화면 한 줄) 읽기 + 렌더 연결
 rep("strip:(cols[6]||'').trim(),", "strip:(cols[6]||'').trim(), hl:(cols[7]||'').trim(),")
