@@ -85,7 +85,7 @@ function nRenderHero(){
     return `<div class="n-slide"${i===nHeroIdx?'':' hidden'}>
       <div class="n-slide-txt">
         <div class="n-slide-meta"><span class="n-live">지금 진행 중</span><span>${nPeriod(ev,it.k)}</span></div>
-        <h2 class="n-slide-title">${nEsc(ev.title)}</h2>
+        <h2 class="n-slide-title">${nEsc(ev.title).replace(/\n/g,"<br>")}</h2>
         ${ev.hl?`<p class="n-slide-sub">${nEsc(ev.hl)}</p>`:''}
         <div class="n-btns">
           <a href="tel:0647587722" class="n-btn-p" onclick="gtag('event','phone_click',{event_category:'conversion',event_label:'hero_btn'}); fbq('track','Contact');">전화상담 064-758-7722</a>

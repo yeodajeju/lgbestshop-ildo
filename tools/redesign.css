@@ -294,3 +294,6 @@ footer{border-top:1px solid #333}
 #n-store .n-slide{animation:none}
 .n-ei-arr.go{flex:0 0 auto;font-size:15px;font-weight:700;white-space:nowrap}
 .n-ei-row:hover .n-ei-t{color:var(--red)}
+/* 제목이 어색한 자리에서 끊기지 않게: 줄 길이를 고르게 나눈다 */
+.n-title,.n-slide-title,.n-slide-sub,.n-ei-t,.n-h2,.stitle,.rtitle,.ttitle,.news-card-title,.popup-title,.cta-t,.mname,.btitle{text-wrap:balance;word-break:keep-all}
+.n-desc,.n-store-sub,.n-lead,.rbody,.mdesc,.bdesc,.cta-d{text-wrap:pretty}
