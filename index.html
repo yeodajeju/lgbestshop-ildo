@@ -2445,7 +2445,15 @@ function previewArchivePopup(idx){
   document.getElementById('popup-overlay').style.display='flex';
 }
 
+function isNewsEntry(){
+  try{
+    const p=new URLSearchParams(location.search);
+    return p.get('open')==='news' || (p.get('utm_source')||'').toLowerCase()==='kakao';
+  }catch(e){return false;}
+}
+
 function initPopup(){
+  if(isNewsEntry()) return; // 카카오 유입은 소식 바로 열기 (팝업 생략)
   if(popupData.active.toLowerCase().trim() !== 'on') return;
   const today = new Date().toDateString();
   const closed = sessionStorage.getItem('ildo_popup_closed');
@@ -2615,6 +2623,12 @@ loadNewsSheet().catch(()=>{});
 setTimeout(()=>{ if(!newsData.length) loadNewsSheet().catch(()=>{}); }, 1000);
 setTimeout(()=>{ if(!newsData.length) loadNewsSheet().catch(()=>{}); }, 3000);
 setTimeout(()=>{ if(!newsData.length) loadNewsSheet().catch(()=>{}); }, 6000);
+</script>
+<script>
+// 카카오채널 등에서 ?open=news 또는 ?utm_source=kakao 로 들어오면 소식 창을 바로 연다
+window.addEventListener('load',function(){
+  if(isNewsEntry()) setTimeout(function(){ openNews(); },500);
+});
 </script>
 </body>
 </html>
