@@ -3036,6 +3036,13 @@ function nFindNews(ev){
   for(var i=0;i<newsData.length;i++){ if(ev.img&&(newsData[i].photo||'').indexOf(ev.img)>=0) return i; }
   var t=(ev.title||'').replace(/\s/g,'');
   for(var j=0;j<newsData.length;j++){ var nt=(newsData[j].title||'').replace(/\s/g,''); if(t&&(nt.indexOf(t)>=0||t.indexOf(nt)>=0)) return j; }
+  // 이미지·제목으로 못 찾으면 시작일이 같은 소식 글이 하나뿐일 때 그 글로 연결
+  if(ev.rangeStart){
+    var c=[]; for(var m=0;m<newsData.length;m++){ if(newsData[m].startDate===ev.rangeStart) c.push(m); }
+    if(c.length===1) return c[0];
+    var c2=c.filter(function(x){return (newsData[x].endDate||newsData[x].startDate)===(ev.rangeEnd||ev.rangeStart);});
+    if(c2.length===1) return c2[0];
+  }
   return -1;
 }
 function nShowInCal(it){
