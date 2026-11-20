@@ -1289,7 +1289,7 @@ function gtag_report_conversion(url) {
     </div>
     <div class="popup-footer">
       <button class="popup-today" onclick="closePopupToday()">오늘 하루 보지 않기</button>
-      <button class="popup-close-btn" onclick="closePopup()">닫기 ✕</button>
+      <button class="popup-close-btn" id="popup-close-btn" onclick="closePopupNext()">닫기 ✕</button>
     </div>
   </div>
 </div>
@@ -2354,6 +2354,7 @@ function clearPopupImg(){
 
 // ── 팝업 (구글 시트 연동)
 let popupData = {active:'off',title:'',desc:'',link:'',imgUrl:''};
+let popupQueue = [], popupIdx = 0;
 let popupArchive = []; // off된 팝업 아카이브
 
 async function loadPopupSheet(manual=false){
@@ -2372,7 +2373,9 @@ async function loadPopupSheet(manual=false){
       // 드롭다운 셀은 .v 또는 .f 둘 다 체크
       function getColVal(cell){ return ((cell?.v ?? cell?.f) || '').toString().toLowerCase().trim(); }
       // on인 행 자동 탐색
-      const activeRow = dataRows.find(row => getColVal(row.c[4]) === 'on');
+      const activeRows = dataRows.filter(row => getColVal(row.c[4]) === 'on');
+      popupQueue = activeRows.map(row => ({title: row.c[0]?.v || '', desc: row.c[1]?.v || '', link: row.c[2]?.v || '', imgUrl: convertDriveUrl(row.c[3]?.v || '')}));
+      const activeRow = activeRows[0];
       if(activeRow){
         popupData = {
           active: 'on',
@@ -2447,6 +2450,7 @@ function initPopup(){
   const today = new Date().toDateString();
   const closed = sessionStorage.getItem('ildo_popup_closed');
   if(closed === today) return;
+  if(popupQueue.length){ setTimeout(()=>showQueuePopup(0), 800); return; }
   document.getElementById('popup-title').innerHTML = (popupData.title||'').replace(/\n/g,'<br>');
   document.getElementById('popup-desc').innerHTML = (popupData.desc||'').replace(/\n/g,'<br>');
   document.getElementById('popup-link').setAttribute('data-href', popupData.link||'');
@@ -2468,6 +2472,33 @@ function initPopup(){
   setTimeout(()=>{ document.getElementById('popup-overlay').style.display='flex'; }, 800);
 }
 
+function showQueuePopup(i){
+  const p = popupQueue[i];
+  if(!p) return;
+  popupIdx = i;
+  document.getElementById('popup-title').innerHTML = (p.title||'').replace(/\n/g,'<br>');
+  document.getElementById('popup-desc').innerHTML = (p.desc||'').replace(/\n/g,'<br>');
+  document.getElementById('popup-link').setAttribute('data-href', p.link||'');
+  const wrap = document.getElementById('popup-img-wrap');
+  const existImg = wrap.querySelector('.popup-img');
+  if(existImg) existImg.remove();
+  if(p.imgUrl){
+    document.getElementById('popup-placeholder').style.display='none';
+    const img = document.createElement('img');
+    img.src = p.imgUrl; img.className='popup-img'; img.alt=p.title;
+    img.style.width='100%'; img.style.display='block';
+    wrap.appendChild(img);
+  } else {
+    document.getElementById('popup-placeholder').style.display='flex';
+  }
+  const cb = document.getElementById('popup-close-btn');
+  if(cb) cb.textContent = (i+1 < popupQueue.length) ? '다음 ('+(i+1)+'/'+popupQueue.length+') ▸' : '닫기 ✕';
+  document.getElementById('popup-overlay').style.display='flex';
+}
+function closePopupNext(){
+  closePopup();
+  if(popupIdx+1 < popupQueue.length) setTimeout(()=>showQueuePopup(popupIdx+1), 250);
+}
 function closePopup(){ document.getElementById('popup-overlay').style.display='none'; }
 function closePopupToday(){ sessionStorage.setItem('ildo_popup_closed', new Date().toDateString()); closePopup(); }
 
