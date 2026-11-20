@@ -292,3 +292,5 @@ footer{border-top:1px solid #333}
 .n-slide:not([hidden]){animation:nfade .45s ease}
 @media(prefers-reduced-motion:reduce){.n-slide:not([hidden]){animation:none}}
 #n-store .n-slide{animation:none}
+.n-ei-arr.go{flex:0 0 auto;font-size:15px;font-weight:700;white-space:nowrap}
+.n-ei-row:hover .n-ei-t{color:var(--red)}

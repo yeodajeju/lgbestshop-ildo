@@ -778,6 +778,8 @@ footer{border-top:1px solid #333}
 .n-slide:not([hidden]){animation:nfade .45s ease}
 @media(prefers-reduced-motion:reduce){.n-slide:not([hidden]){animation:none}}
 #n-store .n-slide{animation:none}
+.n-ei-arr.go{flex:0 0 auto;font-size:15px;font-weight:700;white-space:nowrap}
+.n-ei-row:hover .n-ei-t{color:var(--red)}
 
 </style>
 <!-- Meta Pixel Code -->
@@ -2917,6 +2919,8 @@ function nUniq(list){
 function selectCalDay(d){ selectedDay=d; renderCal(); }
 function nToggleEv(i){
   var it=window._nEvItems&&window._nEvItems[i]; if(!it) return;
+  // 같은 행사의 소식 글이 있으면 자세한 내용은 소식 창에서 보여준다
+  if(nFindNews(it.ev)>=0){ nOpenEvNews(it.ev,null,'event_news_click'); return; }
   nOpenEv[it.id]=!nOpenEv[it.id];
   var el=document.getElementById('n-ei-'+i); if(!el) return;
   el.classList.toggle('open',!!nOpenEv[it.id]);
@@ -2953,17 +2957,17 @@ function renderCal(){
   if(dEl) dEl.innerHTML=label+(isToday?'<small>오늘</small>':'');
   if(cEl) cEl.textContent=items.length?('진행하는 행사 '+items.length+'건'):'';
   if(lEl) lEl.innerHTML=items.length?items.map(function(it,i){
-    var ev=it.ev, op=!!nOpenEv[it.id];
+    var ev=it.ev, linked=nFindNews(ev)>=0, op=!linked&&!!nOpenEv[it.id];
     return `<div class="n-ei${op?' open':''}" id="n-ei-${i}">
-      <button type="button" class="n-ei-row" aria-expanded="${op}" onclick="nToggleEv(${i})">
+      <button type="button" class="n-ei-row" ${linked?'aria-label="'+nEsc(ev.title)+' 소식 보기"':'aria-expanded="'+op+'"'} onclick="nToggleEv(${i})">
         ${ev.img?`<img class="n-ei-th" src="${nEsc(ev.img)}" alt="">`:''}
         <span class="n-ei-txt"><span class="n-ei-p">${nPeriod(ev,it.k)}</span><span class="n-ei-t">${nEsc(ev.title)}</span>${ev.hl?`<span class="n-ei-s">${nEsc(ev.hl)}</span>`:''}</span>
-        <span class="n-ei-arr" aria-hidden="true">${op?'−':'+'}</span>
+        <span class="n-ei-arr${linked?' go':''}" aria-hidden="true">${linked?'자세히 →':(op?'−':'+')}</span>
       </button>
       <div class="n-ei-body">
         ${ev.img?`<img src="${nEsc(ev.img)}" alt="${nEsc(ev.title)}" loading="lazy">`:''}
         ${ev.desc?`<div class="n-ei-desc">${nEsc(ev.desc).replace(/\n/g,'<br>')}</div>`:''}
-        <div class="n-ei-cta">${nFindNews(ev)>=0?`<button type="button" class="sec" onclick="nEvNews(${i})">소식에서 자세히 보기</button>`:''}<a href="#reservation" onclick="gtag('event','reservation_click',{event_category:'conversion',event_label:'event_banner'})">이 행사 상담 예약하기</a><a class="sec" href="tel:0647587722" onclick="gtag('event','phone_click',{event_category:'conversion',event_label:'event_banner'}); fbq('track','Contact');">전화 문의</a></div>
+        <div class="n-ei-cta"><a href="#reservation" onclick="gtag('event','reservation_click',{event_category:'conversion',event_label:'event_banner'})">이 행사 상담 예약하기</a><a class="sec" href="tel:0647587722" onclick="gtag('event','phone_click',{event_category:'conversion',event_label:'event_banner'}); fbq('track','Contact');">전화 문의</a></div>
       </div>
     </div>`;
   }).join(''):'<p class="n-ev-empty">이 날은 등록된 행사가 없습니다.</p>';
