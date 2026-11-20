@@ -272,3 +272,5 @@ footer{border-top:1px solid #333}
 .news-slider{border-radius:0}
 .news-empty{color:var(--mut)}
 @media(min-width:1000px){.n-sec{display:grid;grid-template-columns:minmax(220px,1fr) minmax(0,3.2fr);column-gap:5%}}
+.nav-logo{min-width:0}
+@media(max-width:520px){.nav-logo img:first-of-type{height:20px!important}.nav-logo img:last-of-type{height:16px!important}}
