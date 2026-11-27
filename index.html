@@ -627,8 +627,10 @@ nav{padding:0 6%;background:#fff;backdrop-filter:none;border-bottom:1px solid #E
 .n-slogan{font-size:clamp(24px,2.6vw,36px);font-weight:800;line-height:1.4;letter-spacing:-.03em}
 .n-slogan span,.n-prom-t span{color:var(--red)}
 .n-gal-cap{font-size:17px;font-weight:700;margin-bottom:14px}
-.n-gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:20px 12px}
-.n-gal figure{margin:0}
+.n-gal{display:flex;gap:14px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.n-gal::-webkit-scrollbar{display:none}
+.n-gal figure{margin:0;flex:0 0 300px}
+@media(max-width:640px){.n-gal figure{flex-basis:230px}}
 .n-gal img{display:block;width:100%;height:auto;aspect-ratio:4/3;object-fit:cover}
 .n-gal figcaption{font-size:15px;font-weight:700;margin-top:8px}
 .n-prom-t{font-size:22px;font-weight:800;letter-spacing:-.02em;margin-bottom:18px}
@@ -3125,6 +3127,23 @@ function nPopupClose(){ closePopup(); afterPopups(); }
   renderInlineNews=function(){ orig(); try{ renderCal(); }catch(e){} };
 })();
 
+</script>
+<script>
+/* 매장 사진: 천천히 옆으로 흘러가기 (올리면 멈춤, 손으로 넘기기 가능) */
+(function(){var g=document.querySelector('.n-gal');if(!g)return;
+if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+var kids=[].slice.call(g.children);kids.forEach(function(k){var c=k.cloneNode(true);c.setAttribute('aria-hidden','true');g.appendChild(c);});
+var pos=0,hold=0,last=0,SPEED=38;
+function stop(ms){hold=Date.now()+ms;}
+g.addEventListener('mouseenter',function(){hold=Infinity;});
+g.addEventListener('mouseleave',function(){hold=0;pos=g.scrollLeft;});
+['touchstart','touchmove','wheel','pointerdown'].forEach(function(e){g.addEventListener(e,function(){stop(2500);},{passive:true});});
+function tick(t){var dt=last?Math.min(t-last,60):0;last=t;
+var half=kids[0]?(g.children[kids.length].offsetLeft-g.children[0].offsetLeft):0;
+if(half>0){if(Date.now()>hold){if(Math.abs(g.scrollLeft-pos)>2)pos=g.scrollLeft;pos+=SPEED*dt/1000;if(pos>=half)pos-=half;g.scrollLeft=pos;}
+else if(g.scrollLeft>=half){g.scrollLeft-=half;}}
+requestAnimationFrame(tick);}
+requestAnimationFrame(tick);})();
 </script>
 </body>
 </html>
